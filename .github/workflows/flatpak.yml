@@ -18,7 +18,7 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pyqt6 python3-pyqt6.qtdbus python3-dbus python3-gi dbus-x11 appstream desktop-file-utils
+          sudo apt-get install -y python3-pyqt6 python3-dbus python3-gi dbus-x11 appstream desktop-file-utils
       - name: Controller and GUI tests
         env:
           QT_QPA_PLATFORM: offscreen
