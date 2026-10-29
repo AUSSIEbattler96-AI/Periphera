@@ -1,0 +1,80 @@
+name: Test and build Flatpak
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pyqt6 python3-pyqt6.qtdbus python3-dbus python3-gi dbus-x11 appstream desktop-file-utils
+      - name: Controller and GUI tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: /usr/bin/python3 -m unittest -v test_barracuda.py test_gui.py test_naga.py test_naga_gui.py
+      - name: Real D-Bus wire test with a simulated service
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: dbus-run-session -- /usr/bin/python3 scripts/test_dbus_wire.py
+      - name: Validate desktop metadata
+        run: |
+          desktop-file-validate packaging/io.github.AUSSIEbattler96_AI.Periphera.desktop
+          appstreamcli validate --no-net packaging/io.github.AUSSIEbattler96_AI.Periphera.metainfo.xml
+
+  flatpak:
+    needs: tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+      - name: Build bundle and run tests inside the SDK
+        run: bash scripts/build-flatpak.sh
+      - name: Smoke test the installed bundle
+        run: |
+          flatpak install --user --noninteractive dist/periphera.flatpak
+          flatpak run --env=QT_QPA_PLATFORM=offscreen --command=python3 io.github.AUSSIEbattler96_AI.Periphera -c 'import sys; sys.path.insert(0, "/app/lib/periphera"); from PyQt6.QtWidgets import QApplication; from PyQt6.QtDBus import QDBusMessage; from barracuda_gui import Window; app=QApplication([]); w=Window(autorefresh=False); w.show(); w.navigate("mouse"); w.mouse_page.preview.setChecked(True); app.processEvents(); assert not w.busy; w.close()'
+      - name: Prepare release files
+        run: |
+          cp install-permissions.sh 70-barracuda-x-chroma.rules dist/
+          cp docs/HOST_SETUP.md dist/
+          git archive --format=zip --prefix=barracuda-linux/ HEAD -o dist/periphera-source.zip
+          cd dist
+          sha256sum periphera.flatpak periphera-source.zip install-permissions.sh 70-barracuda-x-chroma.rules HOST_SETUP.md > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: periphera-linux-x86_64
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: flatpak
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: periphera-linux-x86_64
+          path: dist
+      - name: Create a draft prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/* --verify-tag --draft --prerelease --title "Periphera $RELEASE_TAG" --notes-file docs/RELEASE_NOTES.md

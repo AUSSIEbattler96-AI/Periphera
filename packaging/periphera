@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+if [ "$#" -eq 0 ]; then
+    set -- gui
+fi
+exec python3 /app/lib/periphera/barracuda.py "$@"

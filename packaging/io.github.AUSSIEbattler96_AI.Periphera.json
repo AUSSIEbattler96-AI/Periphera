@@ -1,0 +1,47 @@
+{
+  "app-id": "io.github.AUSSIEbattler96_AI.Periphera",
+  "runtime": "org.kde.Platform",
+  "runtime-version": "6.10",
+  "sdk": "org.kde.Sdk",
+  "base": "com.riverbankcomputing.PyQt.BaseApp",
+  "base-version": "6.10",
+  "command": "periphera",
+  "separate-locales": false,
+  "build-options": {
+    "env": {"BASEAPP_REMOVE_WEBENGINE": "1"}
+  },
+  "finish-args": [
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--share=ipc",
+    "--device=all",
+    "--talk-name=org.razer"
+  ],
+  "cleanup-commands": ["/app/cleanup-BaseApp.sh"],
+  "modules": [
+    {
+      "name": "periphera",
+      "buildsystem": "simple",
+      "build-commands": [
+        "install -Dm644 barracuda.py barracuda_gui.py naga.py naga_gui.py -t /app/lib/periphera/",
+        "install -Dm755 packaging/periphera /app/bin/periphera",
+        "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.desktop -t /app/share/applications/",
+        "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.metainfo.xml -t /app/share/metainfo/",
+        "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.svg /app/share/icons/hicolor/scalable/apps/io.github.AUSSIEbattler96_AI.Periphera.svg",
+        "install -Dm644 LICENSE README.md docs/HOST_SETUP.md docs/SUPPORT.md -t /app/share/doc/periphera/"
+      ],
+      "run-tests": true,
+      "test-commands": [
+        "QT_QPA_PLATFORM=offscreen python3 -m unittest -v test_barracuda.py test_gui.py test_naga.py test_naga_gui.py",
+        "QT_QPA_PLATFORM=offscreen python3 scripts/smoke_gui.py"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "..",
+          "skip": [".git", ".flatpak-builder", "build", "repo", "dist", "__pycache__"]
+        }
+      ]
+    }
+  ]
+}

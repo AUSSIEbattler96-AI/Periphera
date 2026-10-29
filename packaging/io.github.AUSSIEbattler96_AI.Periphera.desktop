@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Periphera
+Comment=Control Barracuda X Chroma and Naga V2 Pro peripherals
+Exec=periphera
+Icon=io.github.AUSSIEbattler96_AI.Periphera
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=Razer;Barracuda;Naga;Chroma;Headset;Mouse;RGB;
+StartupNotify=true
+StartupWMClass=periphera
