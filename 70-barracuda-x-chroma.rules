@@ -1,0 +1,2 @@
+# Local active desktop user only; no world-writable permissions or audio-driver changes.
+ACTION=="add|change", SUBSYSTEM=="hidraw", KERNEL=="hidraw*", SUBSYSTEMS=="usb", ATTRS{idVendor}=="1532", ATTRS{idProduct}=="0574", TAG+="uaccess"

@@ -1,0 +1,27 @@
+Periphera 0.3.0 — 29 October 2026
+
+Completed locally:
+- 65 automated tests passed: 24 headset backend, 12 existing GUI,
+  19 Naga/OpenRazer contract and transport conversion, 10 mouse GUI tests.
+- GUI smoke test rendered every page; no hardware opened.
+- Mouse and headset previews inspected offscreen at 1180x860.
+- Minimum 980x700 page width and scrolling verified by GUI tests.
+- Shell syntax and Python compilation passed.
+- Manifest JSON and AppStream XML parse; application IDs agree.
+- GitHub workflow YAML parses.
+- Every headset backend class/function (excluding CLI main) is AST-identical
+  to the original v0.1.0 release. The backend file was not modified in 0.3.0.
+
+Previously confirmed by the headset owner:
+- Barracuda status, static RGB, EQ preset switching, sidetone enable/level.
+
+Not yet validated:
+- Physical Naga V2 Pro behavior, either wired or receiver mode.
+- Real D-Bus integration test: this environment blocks Unix socket creation.
+- Full Flatpak build/install: this environment blocks bubblewrap namespaces.
+- Formal appstreamcli/desktop-file-validate checks: tools unavailable here.
+- GitHub Actions execution and release publication are pending.
+
+The CI workflow performs the D-Bus, metadata, build and installed-app smoke
+checks on a Linux runner. A green workflow still does not replace owner
+hardware testing. All screenshots use labelled example values.
