@@ -31,8 +31,8 @@ mouse and **eight Razer RGB mouse-mat models** into one Linux desktop app:
 sound, lighting, performance and power settings, with explicit Apply actions
 and hardware-free mouse and mouse-mat previews.
 
-**Development version: 0.4.0 · Experimental.** Mouse-mat support requires the
-0.4.0 source or a build containing it; the published 0.3.0 bundle predates this feature.
+**Version: 0.4.0 · Experimental prerelease.** Mouse-mat support is included
+in this version; install the matching bundle from GitHub Releases.
 
 | Device | Connection and backend | Validation |
 | --- | --- | --- |
@@ -199,6 +199,15 @@ actually tested.
 Release tags use the `v0.3.0` format. After the workflow is green, a successful
 tag build creates a **draft prerelease** with the Flatpak, source ZIP, host setup
 files and checksums. Review the draft in GitHub Releases before publishing.
+
+An explicit release request can also be committed in `.github/release.json`
+with `tag`, `publish` and `prerelease` fields. The tag must match `UI_VERSION`.
+Only a main-branch push that changes that file can use its publication flags;
+ordinary pushes, pull requests and manual main builds do not publish it.
+The release job waits for the tests, Flatpak build and installation/startup
+checks, verifies every download against `SHA256SUMS`, then creates the release
+at the exact tested commit. Setting `publish` to true publishes the assets;
+setting it to false leaves a draft.
 
 ## License and acknowledgements
 

@@ -19,9 +19,15 @@ OpenRazer driver and desktop-session daemon; preview mode needs neither.
 Automatic mouse-click reactions, charging configuration and firmware updates
 are not included. The existing headset HID backend is unchanged.
 
-Install an updated bundle using `flatpak install --user ./periphera.flatpak`.
-The published 0.3.0 bundle predates this feature; use the 0.4.0 source or its
-corresponding build artifact until a newer release is published.
+Install the v0.4.0 bundle using `flatpak install --user ./periphera.flatpak`.
+See `HOST_SETUP.md` and `MOUSE_MATS.md` for host drivers and setup. The release
+includes the source archive, host setup files and `SHA256SUMS`.
+
+Validation passed for the mouse-mat implementation: 100 automated tests on
+Ubuntu and inside the Flatpak SDK, real D-Bus wire checks against a simulated
+service, metadata validation and Flatpak installation/startup checks.
+Release requests now have eight additional tests to prevent unintended
+publication. The release workflow verifies the attached files' checksums.
 
 ## Previous release: 0.3.0
 

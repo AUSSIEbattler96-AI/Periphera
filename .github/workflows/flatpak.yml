@@ -11,6 +11,21 @@ permissions:
   contents: read
 
 jobs:
+  release_request:
+    runs-on: ubuntu-24.04
+    outputs:
+      enabled: ${{ steps.request.outputs.enabled }}
+      tag: ${{ steps.request.outputs.tag }}
+      publish: ${{ steps.request.outputs.publish }}
+      prerelease: ${{ steps.request.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Resolve explicit release request
+        id: request
+        run: python3 scripts/release_request.py
+
   tests:
     runs-on: ubuntu-24.04
     steps:
@@ -82,8 +97,8 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: flatpak
+    if: needs.release_request.outputs.enabled == 'true'
+    needs: [flatpak, release_request]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -93,9 +108,25 @@ jobs:
         with:
           name: periphera-linux-x86_64
           path: dist
-      - name: Create a draft prerelease
+      - name: Verify release downloads
+        run: |
+          cd dist
+          sha256sum -c SHA256SUMS
+      - name: Create the requested release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.release_request.outputs.tag }}
+          PUBLISH: ${{ needs.release_request.outputs.publish }}
+          PRERELEASE: ${{ needs.release_request.outputs.prerelease }}
         run: |
-          gh release create "$RELEASE_TAG" dist/* --verify-tag --draft --prerelease --title "Periphera $RELEASE_TAG" --notes-file docs/RELEASE_NOTES.md
+          python3 - <<'PY'
+          from pathlib import Path
+          notes = Path("docs/RELEASE_NOTES.md").read_text().split("\n## Previous release:", 1)[0]
+          Path("release-notes.md").write_text(notes)
+          PY
+          flags=(--target "$GITHUB_SHA" --title "Periphera $RELEASE_TAG" --notes-file release-notes.md)
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then flags+=(--verify-tag); fi
+          if [[ "$PUBLISH" != true ]]; then flags+=(--draft); fi
+          if [[ "$PRERELEASE" == true ]]; then flags+=(--prerelease --latest=false); fi
+          gh release create "$RELEASE_TAG" dist/* "${flags[@]}"

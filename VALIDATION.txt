@@ -26,6 +26,15 @@ CI checks for 0.4.0:
   environment blocks D-Bus socket creation and cannot run this wire check
   or a complete Flatpak build; no local success is claimed for those steps.
 
+Completed on GitHub for the merged mouse-mat implementation:
+- Source commit: 1d9672e5cd7ddd56303d0d512277339672ad0bf8.
+- All 100 tests, real D-Bus wire checks and metadata validation passed.
+- The Flatpak built, installed and opened all eight mat previews successfully.
+- Run: https://github.com/AUSSIEbattler96-AI/Periphera/actions/runs/41045290127
+
+Release preparation adds eight publication-gating tests. The release job
+waits for all checks and verifies SHA256SUMS before publishing any assets.
+
 Not yet hardware-validated for 0.4.0:
 - Physical behavior of any RGB mouse mat, including custom slot placement.
 - Physical Naga V2 Pro behavior or headset access inside the Flatpak.
@@ -67,5 +76,5 @@ Not yet validated:
 - Architectures other than x86_64.
 
 A green workflow does not replace owner hardware testing. All screenshots
-use labelled example values. A successful main-branch build uploads a build
-artifact; publishing a GitHub release is a separate step.
+use labelled example values. An ordinary main-branch build uploads a build
+artifact. Publishing requires a release tag or an explicit release request.
