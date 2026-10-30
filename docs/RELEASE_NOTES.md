@@ -21,6 +21,10 @@ headset control requires the included udev rule if it is not already installed.
 The Flatpak requests broad device visibility for headset hidraw access.
 
 The source ZIP contains the full application, tests, build manifest and GPL
-license. `SHA256SUMS` covers the release downloads. This release is created as
-a **draft prerelease** so its successful workflow result can be reviewed before
-publication.
+license. `SHA256SUMS` covers the release downloads.
+
+Validation passed: all 65 tests on Ubuntu and inside the Flatpak SDK, a real
+D-Bus integration test against a simulated OpenRazer service, desktop metadata
+validation, and installation/startup of the built Flatpak. Hardware control
+inside the sandbox still needs owner testing. Version 0.3.0 remains a
+**prerelease** while physical Naga V2 Pro testing is outstanding.

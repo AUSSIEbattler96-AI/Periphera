@@ -1,4 +1,4 @@
-Periphera 0.3.0 — 29 October 2026
+Periphera 0.3.0 — validation updated 30 October 2026 (Australia/Melbourne)
 
 Completed locally:
 - 65 automated tests passed: 24 headset backend, 12 existing GUI,
@@ -15,13 +15,23 @@ Completed locally:
 Previously confirmed by the headset owner:
 - Barracuda status, static RGB, EQ preset switching, sidetone enable/level.
 
+Completed on GitHub Actions:
+- Application code at commit 79021825f8d1476e6e3c449ba977da597e2168f0.
+- All 65 automated tests passed on Ubuntu 24.04 and inside the Flatpak SDK.
+- Real session D-Bus integration passed against a simulated OpenRazer service:
+  uint16 DPI/timeout, byte RGB/threshold, int32 polling and double brightness.
+- desktop-file-validate and appstreamcli validation passed.
+- The x86_64 Flatpak built successfully and installed into a user installation.
+- The installed bundle opened offscreen, imported QtDBus and showed the mouse
+  preview successfully. These checks did not connect to physical hardware.
+- The source ZIP, host setup files and SHA256SUMS were included with the bundle.
+- Run: https://github.com/AUSSIEbattler96-AI/Periphera/actions/runs/40892218019
+
 Not yet validated:
 - Physical Naga V2 Pro behavior, either wired or receiver mode.
-- Real D-Bus integration test: this environment blocks Unix socket creation.
-- Full Flatpak build/install: this environment blocks bubblewrap namespaces.
-- Formal appstreamcli/desktop-file-validate checks: tools unavailable here.
-- GitHub Actions execution and release publication are pending.
+- Physical headset control from inside the Flatpak sandbox.
+- Architectures other than x86_64.
 
-The CI workflow performs the D-Bus, metadata, build and installed-app smoke
-checks on a Linux runner. A green workflow still does not replace owner
-hardware testing. All screenshots use labelled example values.
+A green workflow does not replace owner hardware testing. All screenshots
+use labelled example values. A successful main-branch build uploads a build
+artifact; publishing a GitHub release is a separate step.

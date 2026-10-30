@@ -44,9 +44,9 @@ still needs only Python's standard library; see the [headset guide](docs/HEADSET
 
 ## Install a Flatpak release
 
-Once the GitHub workflow has produced a bundle and its draft prerelease has
-been published, download `periphera.flatpak` from Releases. Install
-Flatpak with your distribution's package manager, then:
+Download `periphera.flatpak` from [GitHub Releases](https://github.com/AUSSIEbattler96-AI/Periphera/releases).
+Version 0.3.0 is an experimental prerelease. Install Flatpak with your
+distribution's package manager, then:
 
 ```sh
 flatpak install --user ./periphera.flatpak
@@ -83,20 +83,7 @@ host drivers, write udev rules or change device settings. The first build
 downloads the SDK and can take a while. The GitHub workflow builds x86_64;
 other architectures have not been validated.
 
-## Put this project on GitHub
-
-Keep the `.github/` directory when uploading this source. With Git and the
-GitHub CLI authenticated, run these commands from the project directory:
-
-```sh
-git init -b main
-git add .
-git commit -m "Add Barracuda controls, experimental Naga support and Flatpak builds"
-gh repo create Periphera --public --source=. --remote=origin --push
-```
-
-Git may first ask you to configure your commit name and email. If you
-already have a repository, commit and push there instead of creating another.
+## GitHub builds and releases
 
 The **Test and build Flatpak** workflow runs on `main`, pull requests, tags
 and manual dispatch. It tests the backend/UI, verifies real D-Bus wire
@@ -113,8 +100,7 @@ git push origin v0.3.0
 A successful tag build creates a **draft prerelease**, containing the
 Flatpak, source ZIP, host setup files and checksums. Review it in GitHub
 Releases before publishing. Mouse hardware testing is still required even
-when all CI tests pass. No release has been published by these source files
-alone.
+when all CI tests pass.
 
 ## Development and license
 
@@ -123,9 +109,11 @@ QT_QPA_PLATFORM=offscreen python3 -m unittest -v test_barracuda.py test_gui.py t
 ```
 
 Read [SUPPORT.md](docs/SUPPORT.md) and [VALIDATION.txt](VALIDATION.txt) for
-what was actually tested. The Flatpak and real D-Bus integration checks
-could not run in the source-preparation environment because Linux namespace
-and socket creation are restricted; their workflow results are not yet known.
+what was actually tested. The [first successful build](https://github.com/AUSSIEbattler96-AI/Periphera/actions/runs/40892218019)
+passed all 65 tests on Ubuntu and inside the Flatpak SDK, the real D-Bus
+integration test against a simulated service, desktop metadata validation,
+and an installation/startup check of the built Flatpak. Physical Naga V2 Pro
+testing is still outstanding.
 
 Licensed under [GPL-3.0-or-later](LICENSE), compatible with the GPL edition
 of PyQt6 used by this package. OpenRazer is a separate host dependency. Razer,
