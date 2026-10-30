@@ -1,121 +1,180 @@
-# Periphera
+<p align="center">
+  <img src="previews/periphera-venom.png" alt="Periphera — Venom green Cthulhu devouring a ship and serpent" width="1000">
+</p>
 
-A charcoal-and-green Linux desktop controller for the **Razer Barracuda X
-Chroma** headset and **Razer Naga V2 Pro** mouse. GUI release **0.3.0**.
+<h1 align="center">Periphera</h1>
 
-![Naga V2 Pro page in read-only preview mode](previews/naga-performance.png)
+<p align="center">
+  <strong>Your headset. Your mouse. Your control.</strong><br>
+  Open-source peripheral control for Linux, with a charcoal-and-green desktop interface.
+</p>
 
-This is an independent project, not an official Razer application or full
-Synapse compatibility. The mouse adapter is **experimental and has not been
-tested on a physical Naga V2 Pro**. Preview values are examples, not live
-device readings.
+<p align="center">
+  <img src="https://img.shields.io/badge/Linux-Desktop-88e52b?style=for-the-badge&logo=linux&logoColor=ffffff&labelColor=171b16" alt="Linux desktop">
+  <a href="https://github.com/AUSSIEbattler96-AI/Periphera/releases"><img src="https://img.shields.io/badge/Flatpak-Download-88e52b?style=for-the-badge&logo=flatpak&logoColor=ffffff&labelColor=171b16" alt="Download the Flatpak"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-88e52b?style=for-the-badge&labelColor=171b16" alt="GPL-3.0-or-later license"></a>
+</p>
 
-## What's included
+<p align="center">
+  <a href="https://github.com/AUSSIEbattler96-AI/Periphera/releases"><strong>Download</strong></a> ·
+  <a href="#what-you-can-control">Features</a> ·
+  <a href="#a-look-inside">Screenshots</a> ·
+  <a href="#get-started">Get started</a> ·
+  <a href="docs/HOST_SETUP.md">Host setup</a> ·
+  <a href="docs/SUPPORT.md">Support</a>
+</p>
 
-- Barracuda: battery/status, EQ, microphone monitoring, power saving and
-  six-zone lighting, using the existing direct HID backend.
-- Naga V2 Pro: DPI, polling rate, battery, power settings and separate
-  logo/thumb-grid lighting through a host OpenRazer daemon.
-- No-device mouse preview, explicit Apply actions, capability detection and
-  diagnostic responses.
-- Flatpak manifest, desktop integration, tests and GitHub release workflow.
+---
 
-The original headset owner confirmed status, RGB, EQ preset switching and
-sidetone. Mouse tests use simulated responses. See [support details](docs/SUPPORT.md)
-for the exact boundaries and missing features.
+Periphera brings the **Razer Barracuda X Chroma** headset and **Razer Naga V2 Pro**
+mouse into one Linux desktop app: sound, lighting, performance and power settings,
+with explicit Apply actions and a no-device mouse preview.
 
-## Update your existing native installation
+**Current GUI release: 0.3.0 · Experimental prerelease**
 
-Close the GUI and replace the files in your `barracuda-linux` directory with
-this source archive. Your installed `python-pyqt6` package and headset udev
-rule remain suitable. Launch as before:
+| Device | Connection and backend | Validation |
+| --- | --- | --- |
+| **Barracuda X Chroma** | 2.4 GHz dongle · direct HID | Owner-confirmed status, RGB, EQ preset switching and sidetone |
+| **Naga V2 Pro** | USB cable or original receiver · host OpenRazer daemon | Experimental adapter; simulated tests only, physical hardware testing outstanding |
 
-```sh
-python3 barracuda.py gui
-```
+> This is an independent project, not an official Razer application or full
+> Synapse compatibility. Preview values are examples, not live device readings.
 
-Select **Naga V2 Pro** in the sidebar. Enable **Preview without a mouse** to
-explore it without installing OpenRazer or connecting a mouse. Preview mode
-cannot send commands.
+## What you can control
 
-For a new native installation on Arch/CachyOS, install `python-pyqt6` first.
-Other distributions may package `PyQt6.QtDBus` separately. The headset CLI
-still needs only Python's standard library; see the [headset guide](docs/HEADSET_CLI.md).
+| Area | Barracuda X Chroma | Naga V2 Pro |
+| --- | --- | --- |
+| **Sound** | EQ and microphone monitoring / sidetone | — |
+| **Performance** | — | DPI and polling rate |
+| **Lighting** | Six-zone RGB | Separate logo and thumb-grid lighting |
+| **Power** | Battery/status and power saving | Battery and power settings |
 
-## Install a Flatpak release
+Capability detection and diagnostic responses help show what the connected
+backend supports. The mouse preview lets you explore the interface without
+connecting a mouse or installing OpenRazer; **preview mode cannot send commands**.
+
+See [support details](docs/SUPPORT.md) for the exact boundaries and missing features.
+
+## A look inside
+
+| Mouse · Performance | Headset · Sound |
+| :---: | :---: |
+| <img src="previews/naga-performance.png" alt="Naga V2 Pro performance page in read-only preview mode" width="480"> | <img src="previews/sound.png" alt="Barracuda headset sound controls" width="480"> |
+| **Mouse · Lighting** | **Headset · Lighting** |
+| <img src="previews/naga-lighting.png" alt="Naga V2 Pro lighting controls" width="480"> | <img src="previews/lighting.png" alt="Barracuda six-zone lighting controls" width="480"> |
+
+<details>
+<summary>More screens: overview and diagnostics</summary>
+
+![Periphera overview](previews/overview.png)
+
+![Device diagnostics](previews/diagnostics.png)
+
+</details>
+
+## Get started
+
+### Install the Flatpak
 
 Download `periphera.flatpak` from [GitHub Releases](https://github.com/AUSSIEbattler96-AI/Periphera/releases).
-Version 0.3.0 is an experimental prerelease. Install Flatpak with your
-distribution's package manager, then:
+Install Flatpak using your distribution's package manager, then run:
 
 ```sh
 flatpak install --user ./periphera.flatpak
 flatpak run io.github.AUSSIEbattler96_AI.Periphera
 ```
 
-The application also appears as **Periphera** in your desktop menu.
-This is a standalone GitHub-distributed bundle, not a Flathub listing or an
-automatic-update repository. Download and install a newer bundle to update.
+You can also launch **Periphera** from your desktop menu.
 
-**Host setup still matters:** [HOST_SETUP.md](docs/HOST_SETUP.md) covers the
-headset permission rule and OpenRazer 3.10.3+ for mouse control. Drivers
-cannot be installed inside the Flatpak. Existing headset users keep their
-current rule. The package requests broad device access for headset hidraw
-and a narrowly named D-Bus permission for OpenRazer; it requests no network
-or home-directory access.
+The release is a standalone GitHub-distributed bundle. To update, download and
+install the newer bundle. It is not a Flathub listing or an automatic-update
+repository.
 
-Use the headset's 2.4 GHz dongle (`1532:0574`). The Naga adapter accepts the
-mouse's USB cable (`1532:00a7`) or original receiver (`1532:00a8`). Bluetooth
-and Mouse Dock Pro configuration are not supported.
+### Set up the host
 
-## Build locally
+Follow [HOST_SETUP.md](docs/HOST_SETUP.md) for headset permissions and
+**OpenRazer 3.10.3+** for mouse control. Host drivers cannot be installed inside
+the Flatpak. Existing headset users can keep their current udev rule.
 
-On a normal Linux desktop with Flatpak and flatpak-builder installed:
+| Device | Supported connection | USB ID |
+| --- | --- | --- |
+| Barracuda X Chroma | 2.4 GHz dongle | `1532:0574` |
+| Naga V2 Pro | USB cable | `1532:00a7` |
+| Naga V2 Pro | Original receiver | `1532:00a8` |
+
+Bluetooth and Mouse Dock Pro configuration are not supported.
+
+The Flatpak requests broad device access for headset hidraw and a narrowly
+named D-Bus permission for OpenRazer. It requests no network or home-directory
+access.
+
+### Try the mouse preview
+
+Select **Naga V2 Pro** in the sidebar and enable **Preview without a mouse**.
+No mouse or OpenRazer installation is required to explore this read-only mode.
+
+### Run or update a native installation
+
+For an existing installation, close the GUI and replace the files in your
+`barracuda-linux` directory with the new source archive. Your installed
+`python-pyqt6` package and headset udev rule remain suitable. Launch as before:
+
+```sh
+python3 barracuda.py gui
+```
+
+For a new native installation on Arch/CachyOS, install `python-pyqt6` first.
+Other distributions may package `PyQt6.QtDBus` separately.
+
+The headset CLI still needs only Python's standard library.
+See the [headset CLI guide](docs/HEADSET_CLI.md).
+
+## Build and develop
+
+On a Linux desktop with Flatpak and flatpak-builder installed:
 
 ```sh
 bash scripts/build-flatpak.sh
 ```
 
-This installs the KDE 6.10 SDK/runtime and PyQt BaseApp into the user's
-Flatpak installation, runs the tests inside the SDK, and creates
-`dist/periphera.flatpak` plus `dist/SHA256SUMS`. It does not install
-host drivers, write udev rules or change device settings. The first build
-downloads the SDK and can take a while. The GitHub workflow builds x86_64;
-other architectures have not been validated.
+The script installs the **KDE 6.10 SDK/runtime and PyQt BaseApp** into your
+user Flatpak installation, runs the tests inside the SDK, and creates:
 
-## GitHub builds and releases
+- `dist/periphera.flatpak`
+- `dist/SHA256SUMS`
 
-The **Test and build Flatpak** workflow runs on `main`, pull requests, tags
-and manual dispatch. It tests the backend/UI, verifies real D-Bus wire
-types against a simulated service, validates metadata, builds the bundle,
-tests the installed application, and uploads a downloadable artifact.
+It does not install host drivers, write udev rules or change device settings.
+The first build downloads the SDK and can take a while. The GitHub workflow
+builds **x86_64**; other architectures have not been validated.
 
-After the workflow is green, create the first release tag:
-
-```sh
-git tag v0.3.0
-git push origin v0.3.0
-```
-
-A successful tag build creates a **draft prerelease**, containing the
-Flatpak, source ZIP, host setup files and checksums. Review it in GitHub
-Releases before publishing. Mouse hardware testing is still required even
-when all CI tests pass.
-
-## Development and license
+Run the backend and GUI tests directly with:
 
 ```sh
 QT_QPA_PLATFORM=offscreen python3 -m unittest -v test_barracuda.py test_gui.py test_naga.py test_naga_gui.py
 ```
 
-Read [SUPPORT.md](docs/SUPPORT.md) and [VALIDATION.txt](VALIDATION.txt) for
-what was actually tested. The [first successful build](https://github.com/AUSSIEbattler96-AI/Periphera/actions/runs/40892218019)
-passed all 65 tests on Ubuntu and inside the Flatpak SDK, the real D-Bus
-integration test against a simulated service, desktop metadata validation,
-and an installation/startup check of the built Flatpak. Physical Naga V2 Pro
-testing is still outstanding.
+### Validation and releases
 
-Licensed under [GPL-3.0-or-later](LICENSE), compatible with the GPL edition
-of PyQt6 used by this package. OpenRazer is a separate host dependency. Razer,
-Barracuda, Naga and Chroma are trademarks of their respective owner; this
-project is not affiliated with or endorsed by Razer.
+The **Test and build Flatpak** workflow runs on `main`, pull requests, tags and
+manual dispatch. It checks backend/UI tests, real D-Bus wire types against a
+simulated service, desktop metadata, the Flatpak build and the installed app,
+then uploads a downloadable artifact.
+
+The [first successful build](https://github.com/AUSSIEbattler96-AI/Periphera/actions/runs/40892218019)
+passed all **65 tests** on Ubuntu and inside the Flatpak SDK, the simulated
+D-Bus integration test, metadata validation and an installation/startup check.
+Physical Naga V2 Pro testing is still outstanding. Read
+[VALIDATION.txt](VALIDATION.txt) and [SUPPORT.md](docs/SUPPORT.md) for what was
+actually tested.
+
+Release tags use the `v0.3.0` format. After the workflow is green, a successful
+tag build creates a **draft prerelease** with the Flatpak, source ZIP, host setup
+files and checksums. Review the draft in GitHub Releases before publishing.
+
+## License and acknowledgements
+
+Licensed under [GPL-3.0-or-later](LICENSE), compatible with the GPL edition of
+PyQt6 used by this package. OpenRazer is a separate host dependency.
+
+Razer, Barracuda, Naga and Chroma are trademarks of their respective owner.
+Periphera is not affiliated with or endorsed by Razer.
