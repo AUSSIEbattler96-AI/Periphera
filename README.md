@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="previews/periphera-venom.png" alt="Periphera — Venom green Cthulhu devouring a ship and serpent" width="1000">
+  <img src="previews/periphera-venom-transparent.png" alt="Periphera — Venom green Cthulhu devouring a ship and serpent" width="1000">
 </p>
 
 <h1 align="center">Periphera</h1>
