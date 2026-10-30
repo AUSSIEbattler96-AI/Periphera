@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=Periphera
-Comment=Control Razer headset, mouse and RGB mouse-mat settings
+Comment=Discover and control OpenRazer peripherals on Linux
 Exec=periphera
 Icon=io.github.AUSSIEbattler96_AI.Periphera
 Terminal=false
 Categories=Settings;HardwareSettings;
-Keywords=Razer;Barracuda;Naga;Chroma;Headset;Mouse;RGB;Mousepad;Mousemat;Firefly;Goliathus;Strider;
+Keywords=Razer;OpenRazer;Barracuda;Naga;Trinity;Chroma;Headset;Mouse;Keyboard;Keypad;RGB;Mousemat;
 StartupNotify=true
 StartupWMClass=periphera

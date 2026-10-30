@@ -1,85 +1,76 @@
 # Support and validation boundaries
 
-This is an independent experimental controller, not an official Razer app
-and not full Synapse compatibility. The release is intended for community
-testing, not a claim of complete device support.
+Periphera 0.5.0 discovers all devices returned by the host OpenRazer daemon.
+It is an independent experimental controller, not full Synapse compatibility.
 
-| Device | Transport | Implemented controls | Validation |
+| Device source | Discovery | Controls | Validation |
 | --- | --- | --- | --- |
-| Barracuda X Chroma `1532:0574` | Direct hidraw through 2.4 GHz dongle | Battery/status, EQ presets/curve, sidetone, sleep timeout, six-zone RGB and host-generated effects | Owner confirmed status, RGB, EQ preset changes and sidetone in the original backend. Custom EQ/sleep writes and effects still need owner testing. |
-| Naga V2 Pro `1532:00a7` / `1532:00a8` | Host OpenRazer session D-Bus, cable/original receiver | X/Y DPI, polling rate, battery, sleep seconds, low-battery threshold, logo/thumb-grid brightness and static/spectrum/breathing/off | Adapter and UI tested with simulated responses; no physical mouse test. |
-| Eight Razer RGB mouse mats; see [model list](MOUSE_MATS.md) | Host OpenRazer session D-Bus, USB | Brightness, available static/spectrum/breathing/wave/reactive/off effects, manual reactive triggering and custom matrix colours | Adapter/UI and wire-contract tests with simulated devices; physical mat testing outstanding. |
+| Host OpenRazer | Every returned device, including Naga Trinity, keyboards, mice, keypads, headsets, mats, cases, monitors and accessories | Public controls whose method and signature are advertised by the live device | Simulated controllers, GUI tests and real D-Bus wire tests; new controls still need physical owner testing |
+| Barracuda X Chroma `1532:0574` | Existing direct HID discovery through its 2.4 GHz dongle | Original status, EQ, microphone monitoring, sleep timeout and six-zone RGB | Original owner-confirmed status, RGB, EQ preset switching and sidetone; further controls need owner testing |
 
-The app does not configure the Naga Trinity or BlackWidow V4 X. They can
-remain connected; they are filtered out by the mouse adapter. Existing
-headset behavior is preserved.
+## Device controls
 
-## Mouse behavior
+Periphera no longer excludes the Trinity or other models with a fixed USB-ID
+allowlist. Host OpenRazer determines which devices and connection modes exist.
+A device absent from that daemon cannot be added by the Flatpak UI alone.
 
-- DPI is limited by the live daemon maximum, capped at 30,000; this editor's
-  lower limit is 100. Polling choices are 125, 500 and 1,000 Hz.
-- Sleep is 60–900 **seconds**. Low-battery threshold is 5–50%. These are
-  intentionally bounded controls, not claims about every firmware mode.
-- Introspection determines which methods exist and their wire types. Missing
-  capabilities are disabled. A successful getter is required before a
-  numerical setter; a follow-up getter must match (with small quantization
-  tolerance for brightness/threshold).
-- OpenRazer getters may return daemon-cached data. “OpenRazer readback
-  matched” does not prove an independent physical hardware readback.
-- Effect commands have no color/effect readback. Confirm them visually.
-- DPI stages, button remapping/macros, onboard profile management,
-  HyperScroll feel/tension tuning, Bluetooth configuration, Mouse Dock Pro
-  pairing, and firmware updates are not implemented here.
+Live introspection is intersected with documented public control metadata in
+`openrazer_catalog.json`. This supplies lighting, sensitivity, DPI stages,
+polling, power, scroll, key/macro and accessory controls across device types.
+Missing methods and incompatible wire signatures are omitted. New upstream
+control APIs may require an app update even when device discovery already works.
+Low-level device lifecycle, firmware updating and arbitrary Synapse-only features
+are not provided by this interface.
 
-## Mouse-mat behavior
+- DPI and polling options follow the selected daemon device. Legacy single-axis
+  DPI devices use their discrete choices and a zero Y-axis value.
+- DPI stages use the typed byte/array-of-uint16-pairs API, with up to five stages.
+- Lighting colours, brightness, effects, charging zones and ARGB controls are
+  presented only where advertised. Driver slots may differ from marketing zones.
+- Custom LED frames use each device's live rows and columns, upload every row,
+  then activate custom mode. The editor does not infer physical key labels.
+- Macro editing sends key presses/releases, URL actions and host script paths to
+  OpenRazer. Execution depends on the host daemon, its key mappings and desktop
+  input support; Wayland may constrain upstream macro playback.
+- HyperPolling pairing/LED controls and scroll options appear only where the
+  installed daemon exposes them. No extra support is claimed for other docks.
 
-See [MOUSE_MATS.md](MOUSE_MATS.md) for USB IDs, variants, features and setup.
-Live capabilities and matrix dimensions come from OpenRazer. Single-colour
-Goliathus mats do not gain extra physical zones. Lighting synchronization
-must be off; unknown synchronization state also blocks writes. Reactive
-pulses are manual: automatic desktop mouse-click detection is not implemented.
-Custom frames use the public OpenRazer client's row/start/end format.
+## Selection and writes
+
+Home scans and refreshes are read-only. Settings change only through an explicit
+Apply action. Device identity and live method signatures are checked again for
+writes. Rescans remove disconnected entries and invalidate opened device pages;
+failed status reads disable controls. Duplicate names keep separate serial IDs.
+Draft edits survive a refresh while the device's control layout stays the same.
+
+Shared lighting must be off for per-device lighting changes. Unknown sync state
+also blocks those writes. Home exposes explicit global sync/screensaver controls;
+Periphera never changes them automatically. Daemon readback may be cached, so a
+successful command needs physical confirmation. Diagnostics records errors and
+responses; remove serial numbers before publishing logs.
 
 ## Tests
 
 ```sh
 QT_QPA_PLATFORM=offscreen python3 -m unittest discover -v
 QT_QPA_PLATFORM=offscreen python3 scripts/smoke_gui.py
-```
-
-These tests use simulated devices and do not access your hardware. A separate
-CI check uses a private D-Bus session and a simulated OpenRazer service:
-
-```sh
 QT_QPA_PLATFORM=offscreen dbus-run-session -- python3 scripts/test_dbus_wire.py
 ```
 
-It needs PyQt6.QtDBus, dbus-python, and PyGObject. The GUI needs only PyQt6;
-the Barracuda command-line backend still uses Python's standard library.
+The full suite uses simulated devices. The wire check requires PyQt6.QtDBus,
+dbus-python, PyGObject and Jeepney; the desktop app uses PyQt6 and Jeepney.
+The Barracuda CLI continues to use only the Python standard library.
+CI builds the Flatpak and tests its installed contents before release.
+See [VALIDATION.txt](../VALIDATION.txt) for recorded results.
 
-GitHub Actions also runs the integration check, builds the Flatpak and tests
-the installed app. See [VALIDATION.txt](../VALIDATION.txt) and the specific
-workflow run for results; a manifest alone does not prove a successful build.
+## Host setup and sources
 
-## Owner testing
+- [Host setup, including SteamOS diagnostics](HOST_SETUP.md)
+- [OpenRazer supported devices and installation](https://openrazer.github.io/)
+- [Public endpoint metadata source](https://github.com/openrazer/openrazer/tree/477f4d6d3ab7e9deb6310d5bd3742560c5cbe80d/daemon/openrazer_daemon/dbus_services/dbus_methods)
+- [Device type and identity API](https://github.com/openrazer/openrazer/blob/477f4d6d3ab7e9deb6310d5bd3742560c5cbe80d/daemon/openrazer_daemon/dbus_services/dbus_methods/all.py)
+- [Matrix framing in the upstream client](https://github.com/openrazer/openrazer/blob/477f4d6d3ab7e9deb6310d5bd3742560c5cbe80d/pylib/openrazer/client/fx.py)
+- [Jeepney D-Bus transport](https://jeepney.readthedocs.io/en/latest/integrate.html)
 
-On the first mouse test, scan and inspect Diagnostics before changing a
-setting. Check DPI, then polling, power, and lighting separately. Report the
-USB ID, connection mode, OpenRazer version, requested value, and observed
-behavior. Remove serial numbers before publishing diagnostic output.
-
-## Upstream references checked for this implementation
-
-- [OpenRazer 3.10.3 mouse device definitions](https://github.com/openrazer/openrazer/blob/v3.10.3/daemon/openrazer_daemon/hardware/mouse.py)
-- [OpenRazer 3.12.4 mouse device definitions](https://github.com/openrazer/openrazer/blob/v3.12.4/daemon/openrazer_daemon/hardware/mouse.py)
-- [DPI, polling and power endpoints](https://github.com/openrazer/openrazer/blob/v3.10.3/daemon/openrazer_daemon/dbus_services/dbus_methods/mamba.py)
-- [Logo lighting endpoints](https://github.com/openrazer/openrazer/blob/v3.10.3/daemon/openrazer_daemon/dbus_services/dbus_methods/nagahexv2.py)
-- [Thumb-grid/general Chroma endpoints](https://github.com/openrazer/openrazer/blob/v3.10.3/daemon/openrazer_daemon/dbus_services/dbus_methods/chroma_keyboard.py)
-- [Qt D-Bus Python support](https://www.riverbankcomputing.com/static/Docs/PyQt6/dbus.html)
-- [Flatpak sandbox permissions](https://docs.flatpak.org/en/latest/sandbox-permissions.html)
-- [PyQt BaseApp 6.10](https://github.com/flathub/com.riverbankcomputing.PyQt.BaseApp/tree/branch/6.10)
-- [Original Barracuda protocol discussion](https://github.com/openrazer/openrazer/issues/2704)
-- [Mouse-mat device definitions and endpoints](MOUSE_MATS.md#validation)
-
-The mouse adapter is new application code using the public D-Bus interface;
-it does not bundle or fork OpenRazer's driver/daemon.
+OpenRazer's kernel driver and daemon remain separate host dependencies; they are
+not bundled or forked by this application.

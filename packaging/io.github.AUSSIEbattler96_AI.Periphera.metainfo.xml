@@ -4,24 +4,26 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Periphera</name>
-  <summary>Control Razer headset, mouse and RGB mouse-mat settings</summary>
+  <summary>Discover and control OpenRazer peripherals on Linux</summary>
   <developer id="io.github.aussiebattler96-ai">
     <name>Periphera contributors</name>
   </developer>
   <description>
     <p>An independent Linux controller with a charcoal and green interface for
-    the Razer Barracuda X Chroma headset, Naga V2 Pro mouse and RGB mouse mats.</p>
+    OpenRazer-supported peripherals and the Razer Barracuda X Chroma headset.</p>
     <ul>
       <li>Headset battery, equalizer, microphone monitoring and six-zone lighting</li>
-      <li>Mouse DPI, polling rate, battery, sleep timeout and lighting through OpenRazer</li>
-      <li>Eight Razer RGB mouse-mat models with brightness, effects and custom colours through OpenRazer</li>
+      <li>Home-page scanning with peripheral categories and individual connected devices in the sidebar</li>
+      <li>All devices reported by the host OpenRazer daemon, including Naga Trinity</li>
+      <li>Capability-driven lighting, DPI, polling, power, scroll and macro controls</li>
+      <li>Custom LED colours using the connected device's multi-row matrix layout</li>
       <li>Read-only mouse and mouse-mat previews for exploring without hardware</li>
       <li>Explicit Apply actions and device response diagnostics</li>
     </ul>
-    <p>Mouse and mouse-mat integration is experimental and needs owner testing.
-    Install OpenRazer on the host for mouse and mouse-mat control. The headset needs a
-    host udev permission rule. Bluetooth mouse configuration, button remapping,
-    onboard profile management and HyperScroll tuning are not included.</p>
+    <p>OpenRazer integration is experimental and needs physical owner testing.
+    Install OpenRazer's driver and desktop-session daemon on the host.
+    Controls and connection support depend on that installed driver and device.
+    The direct Barracuda X Chroma backend needs a host udev permission rule.</p>
     <p>This is not an official Razer application or a complete Synapse replacement.</p>
   </description>
   <url type="homepage">https://github.com/AUSSIEbattler96-AI/Periphera</url>
@@ -31,6 +33,9 @@
   <content_rating type="oars-1.1"/>
   <supports><control>pointing</control><control>keyboard</control></supports>
   <releases>
+    <release version="0.5.0" date="2026-10-30" type="development">
+      <description><p>Discover all OpenRazer devices, group the sidebar by peripheral type, and show controls from each device's live capabilities.</p></description>
+    </release>
     <release version="0.4.1" date="2026-10-30" type="development">
       <description><p>Use the transparent Venom kraken artwork for the application icon, window icon and sidebar branding.</p></description>
     </release>

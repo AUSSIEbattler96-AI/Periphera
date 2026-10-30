@@ -19,14 +19,14 @@ try:
         QApplication, QMainWindow, QWidget, QFrame, QLabel, QPushButton,
         QVBoxLayout, QHBoxLayout, QStackedWidget, QScrollArea,
         QSlider, QLineEdit, QComboBox, QTextEdit, QProgressBar, QColorDialog,
-        QAbstractButton, QSizePolicy,
+        QAbstractButton, QSizePolicy, QLayout,
     )
 except ImportError as exc:
     raise ImportError("The new GUI needs PyQt6. On Arch/CachyOS run: sudo pacman -S --needed python-pyqt6") from exc
 
 from barracuda import Controller, PRESETS, color_value, diagnose, effect
 
-UI_VERSION = "0.4.1"
+UI_VERSION = "0.5.0"
 APP_ID = "io.github.AUSSIEbattler96_AI.Periphera"
 GREEN = "#44d62c"
 BG = "#0e1011"
@@ -49,6 +49,7 @@ STYLE = """
 QWidget { color: #edf1ed; font-family: "DejaVu Sans"; font-size: 13px; }
 QMainWindow, QWidget#shell, QWidget#page, QStackedWidget { background: #0e1011; }
 QFrame#sidebar { background: #121416; border-right: 1px solid #292d2f; }
+QWidget#sidebarContent { background: #121416; }
 QFrame#header { background: #0e1011; border-bottom: 1px solid #292d2f; }
 QFrame#footer { background: #121416; border-top: 1px solid #292d2f; }
 QFrame#card { background: #191c1e; border: 1px solid #2b3032; border-radius: 12px; }
@@ -73,7 +74,7 @@ QPushButton[kind="preset"]:checked { background: #20391e; color: #6ee65b; border
 QLineEdit { background: #111515; border: 1px solid #343b36; border-radius: 5px;
             padding: 8px; selection-background-color: #32522b; }
 QLineEdit:focus { border-color: #44d62c; }
-QSpinBox { background: #111515; border: 1px solid #343b36; border-radius: 6px;
+QSpinBox, QDoubleSpinBox { background: #111515; border: 1px solid #343b36; border-radius: 6px;
            padding: 8px; min-width: 85px; }
 QSpinBox:focus { border-color: #44d62c; }
 QSpinBox:disabled, QComboBox:disabled, QLineEdit:disabled { color: #667168; }
@@ -97,6 +98,11 @@ QSlider::handle:vertical { height: 9px; margin: 0 -10px; background: #64de50;
                           border: 1px solid #86ef70; border-radius: 3px; }
 QSlider:focus { border: 1px solid #3a6332; border-radius: 4px; }
 QScrollArea { border: none; background: transparent; }
+QTabWidget::pane { border: 1px solid #2b3032; background: #0e1011; }
+QTabBar::tab { background: #191c1e; color: #a6b0a8; padding: 10px 12px; }
+QTabBar::tab:selected { background: #20311e; color: #6fe65b; border-bottom: 2px solid #44d62c; }
+QTableWidget { background: #111515; alternate-background-color: #191c1e; gridline-color: #343b36; }
+QHeaderView::section { background: #202822; color: #a6b0a8; padding: 5px; border: 1px solid #343b36; }
 QScrollBar:vertical { background: transparent; width: 7px; margin: 0; }
 QScrollBar::handle:vertical { background: #3b493d; min-height: 25px; border-radius: 3px; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
@@ -251,7 +257,7 @@ class HeadsetArt(QWidget):
 
 class Window(QMainWindow):
     def __init__(self, device=None, controller_factory=Controller, autorefresh=True, mouse_factory=None,
-                 mat_factory=None):
+                 mat_factory=None, openrazer_factory=None, headset_scanner=None):
         super().__init__()
         self.device, self.factory = device, controller_factory
         self.bus = queue.Queue()
@@ -260,6 +266,11 @@ class Window(QMainWindow):
         self.data, self.dirty = {}, set()
         self.loading = False
         self.actions, self.nav, self.pages = [], {}, {}
+        from openrazer_backend import OpenRazerController
+        self.openrazer_factory = openrazer_factory or OpenRazerController
+        self.headset_scanner = headset_scanner or diagnose
+        self.device_pages, self.inventory = {}, []
+        self.discovery_pages = {}
         self.last_json = "{}"
         self.draft_preset = "music"
         self.setWindowTitle("Periphera")
@@ -280,7 +291,26 @@ class Window(QMainWindow):
         from mousemat import MouseMatController
         self.mat_page = MouseMatPage(self, mat_factory or MouseMatController)
         self.pages["mousemat"][1].addWidget(self.mat_page)
-        self.navigate("overview")
+        from openrazer_gui import DiscoveryPage
+        from openrazer_backend import TYPES
+        for key, kind in [("home", None)] + [("type:" + kind, kind) for kind in TYPES]:
+            page = DiscoveryPage(self, kind)
+            self.discovery_pages[key] = page
+            self.pages[key][1].addWidget(page)
+        # Existing specialist previews remain available from Home, without
+        # creating permanent model-specific entries in the device sidebar.
+        previews = row()
+        previews.addWidget(button("Mouse preview", self.preview_mouse, "ghost"))
+        previews.addWidget(button("Mouse-mat previews", self.preview_mats, "ghost"))
+        previews.addStretch()
+        self.pages["home"][1].addLayout(previews)
+        for key in ("overview", "sound", "lighting"):
+            tabs = row()
+            for target, label in (("overview", "Overview"), ("sound", "Sound"), ("lighting", "Lighting")):
+                tabs.addWidget(button(label, lambda _=False, n=target: self.navigate(n), "ghost"))
+            tabs.addStretch()
+            self.pages[key][1].insertLayout(0, tabs)
+        self.navigate("home")
         self.paint_status()
         self.paint_presets()
         self.paint_colors()
@@ -290,7 +320,7 @@ class Window(QMainWindow):
         self.refresh_shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
         self.refresh_shortcut.activated.connect(self.refresh_current)
         if autorefresh:
-            QTimer.singleShot(200, self.refresh)
+            QTimer.singleShot(200, self.scan_devices)
 
     def action(self, title, callback, kind=""):
         w = button(title, callback, kind)
@@ -306,7 +336,7 @@ class Window(QMainWindow):
         outer.setSpacing(0)
         rail = QFrame()
         rail.setObjectName("sidebar")
-        rail.setFixedWidth(190)
+        rail.setFixedWidth(210)
         outer.addWidget(rail)
         nav = column(rail, 7, 16)
         nav.addSpacing(17)
@@ -319,26 +349,32 @@ class Window(QMainWindow):
         nav.addSpacing(9)
         nav.addWidget(text("PERIPHERA", 17, weight=700))
         nav.addWidget(text("Y O U R  D E V I C E S", 9, GREEN, 600))
-        nav.addSpacing(28)
-        nav.addWidget(text("DEVICE", 10, "#6d7c71", 600))
-        nav.addSpacing(5)
-        for name, title in (("overview", "Overview"), ("sound", "Sound"),
-                            ("lighting", "Lighting"), ("diagnostics", "Diagnostics"),
-                            ("mouse", "Naga V2 Pro"), ("mousemat", "Mouse mats")):
-            if name == "mouse":
-                nav.addSpacing(18)
-                nav.addWidget(text("MOUSE", 10, "#6d7c71", 600))
-            elif name == "mousemat":
-                nav.addSpacing(12)
-                nav.addWidget(text("DESK", 10, "#6d7c71", 600))
-            w = button(title, lambda _=False, n=name: self.navigate(n), "nav", True)
-            nav.addWidget(w)
+        nav.addSpacing(18)
+        from openrazer_backend import TYPES
+        nav_scroll = QScrollArea()
+        nav_scroll.setWidgetResizable(True)
+        nav_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        nav_body = QWidget()
+        nav_body.setObjectName("sidebarContent")
+        navigation = column(nav_body, 3)
+        navigation.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        nav_scroll.setWidget(nav_body)
+        nav.addWidget(nav_scroll, 1)
+        self.device_nav_layouts = {}
+        for name, title in [("home", "Home")] + [("type:" + kind, title) for kind, title in TYPES.items()] + [("diagnostics", "Diagnostics")]:
+            w = button(title.replace("&", "&&"), lambda _=False, n=name: self.navigate(n), "nav", True)
+            navigation.addWidget(w)
             self.nav[name] = w
-        nav.addStretch()
+            if name.startswith("type:"):
+                children = column(spacing=2)
+                children.setContentsMargins(12, 0, 0, 3)
+                navigation.addLayout(children)
+                self.device_nav_layouts[name[5:]] = children
+        navigation.addStretch()
         nav.addWidget(text("UNOFFICIAL CONTROLLER", 9, "#718076", 600))
         nav.addSpacing(3)
         nav.addWidget(text("Linux  /  UI " + UI_VERSION, 11, MUTED))
-        nav.addWidget(text("Headset · mouse · mats", 10, "#718076"))
+        nav.addWidget(text("All your peripherals", 10, "#718076"))
         nav.addSpacing(6)
 
         main = QWidget()
@@ -372,6 +408,7 @@ class Window(QMainWindow):
         self.stack = QStackedWidget()
         right.addWidget(self.stack, 1)
         titles = {
+            "home": ("Your setup", "Discover, select and personalise your peripherals."),
             "overview": ("Device overview", "Your headset, at a glance."),
             "sound": ("Sound & microphone", "Tune your listening experience."),
             "lighting": ("Chroma lighting", "Six zones. Make them yours."),
@@ -379,6 +416,7 @@ class Window(QMainWindow):
             "mouse": ("Mouse control", "Performance, lighting and power. One place."),
             "mousemat": ("Mouse-mat lighting", "Your desk. Your colours."),
         }
+        titles.update({"type:" + kind: (title, "Connected devices and available controls.") for kind, title in TYPES.items()})
         for name, title in titles.items():
             page = QWidget()
             page.setObjectName("page")
@@ -402,7 +440,7 @@ class Window(QMainWindow):
         footer.setObjectName("footer")
         bottom = QHBoxLayout(footer)
         bottom.setContentsMargins(24, 13, 24, 13)
-        self.notice = text("●  Ready. Refresh to read your headset.", 12, MUTED)
+        self.notice = text("●  Ready. Scan for connected peripherals.", 12, MUTED)
         self.notice.setWordWrap(True)
         self.notice.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.updated = text("Not yet refreshed", 10, "#78877b")
@@ -684,13 +722,132 @@ class Window(QMainWindow):
         self.device_heading.setText("RAZER CHROMA RGB" if name == "mousemat" else
                                     "NAGA V2 PRO" if name == "mouse" else "BARRACUDA X CHROMA")
         self.connection.setVisible(name not in ("mouse", "mousemat"))
+        if name == "home" or name.startswith(("type:", "device:")) or name == "diagnostics":
+            self.connection.setVisible(False)
+            self.device_category.setText("PERIPHERA  /  YOUR SETUP")
+            self.device_heading.setText("CONNECTED PERIPHERALS")
+            device_page = self.device_pages.get(name)
+            if device_page:
+                self.device_heading.setText(device_page.device["name"].upper())
+        for key, nav in self.nav.items():
+            if name in self.device_pages:
+                nav.setChecked(key == name or key == "type:" + self.device_pages[name].device["type"])
 
     def refresh_current(self):
+        if self.current_page in self.discovery_pages:
+            return self.scan_devices()
+        if self.current_page in self.device_pages:
+            return self.device_pages[self.current_page].refresh()
         if self.current_page == "mouse":
             return self.mouse_page.refresh()
         if self.current_page == "mousemat":
             return self.mat_page.refresh()
         return self.refresh()
+
+    def preview_mouse(self):
+        self.mouse_page.preview.setChecked(True)
+        self.navigate("mouse")
+
+    def preview_mats(self):
+        self.mat_page.preview.setChecked(True)
+        self.navigate("mousemat")
+
+    def scan_devices(self):
+        scanner = self.headset_scanner
+        def scan(controller):
+            try:
+                result = controller.discover()
+            except Exception as exc:
+                result = {"devices": [], "errors": {"OpenRazer": str(exc)},
+                          "sync_effects": None, "off_on_screensaver": None}
+            try:
+                headsets = scanner()
+                for item in headsets["devices"]:
+                    if item.get("capabilities", {}).get("vendor"):
+                        result["devices"].append({"name": "Barracuda X Chroma", "serial": item["path"],
+                                                  "usb_id": "1532:0574", "type": "headset", "source": "barracuda"})
+            except Exception as exc:
+                result.setdefault("errors", {})["Headset scan"] = str(exc)
+            return result
+        # Connection failures must still allow the independent Barracuda scan.
+        class ScanSession:
+            def __init__(session, _): pass
+            def __enter__(session): return session
+            def __exit__(session, *_): pass
+            def discover(session):
+                with self.openrazer_factory(None) as controller:
+                    return controller.discover()
+        return self.run("Scanning connected peripherals", scan, self.receive_scan,
+                        controller_factory=ScanSession)
+
+    def receive_scan(self, result):
+        from openrazer_gui import clear_layout
+        self.inventory = result["devices"]
+        live = {"device:" + d["serial"] for d in self.inventory if d["source"] == "openrazer"}
+        for key in list(self.device_pages):
+            page = self.device_pages[key]
+            identity = next((d for d in self.inventory if "device:" + d["serial"] == key), None)
+            if key not in live or identity != page.device:
+                if self.current_page == key: self.navigate("home")
+                scroll = self.pages.pop(key)[0]
+                self.stack.removeWidget(scroll)
+                scroll.deleteLater()
+                del self.device_pages[key]
+        for key in list(self.nav):
+            if key.startswith("device:"):
+                del self.nav[key]
+        for layout in self.device_nav_layouts.values(): clear_layout(layout)
+        from collections import Counter
+        counts = Counter(d["name"] for d in self.inventory)
+        for device in self.inventory:
+            key = "device:" + device["serial"]
+            title = device["name"].removeprefix("Razer ")
+            if counts[device["name"]] > 1: title += " · " + device["serial"][-6:]
+            entry = button(title, lambda _=False, d=dict(device): self.open_device(d), "nav", True)
+            entry.setStyleSheet("font-size:11px; padding:9px 7px; text-align:left;")
+            entry.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+            entry.setToolTip(device["name"] + " · " + device["serial"])
+            self.device_nav_layouts[device["type"]].addWidget(entry)
+            self.nav[key] = entry
+        for page in self.discovery_pages.values(): page.receive(result)
+        # A successful rescan is also a fresh connection boundary. Require a
+        # read before allowing writes on a previously opened device page.
+        for page in self.device_pages.values(): page.failed()
+        self.updated.setText("Scanned " + time.strftime("%H:%M:%S"))
+        self.notify(f"Found {len(self.inventory)} peripherals." + (" Check Home for setup details." if result.get("errors") else ""))
+
+    def open_device(self, device):
+        if self.busy:
+            self.notify("Wait for the current operation to finish before selecting another device.")
+            return False
+        if device not in self.inventory:
+            self.notify("Device no longer available. Scan again.", True)
+            return
+        if device["source"] == "barracuda":
+            self.device = device["serial"]
+            self.data.clear()
+            self.dirty.clear()
+            self.paint_status()
+            self.navigate("overview")
+            self.refresh()
+            return
+        key = "device:" + device["serial"]
+        if key not in self.device_pages:
+            from openrazer_gui import DevicePage
+            page = DevicePage(self, device)
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            scroll.setWidget(page)
+            self.stack.addWidget(scroll)
+            self.pages[key] = (scroll, None, (device["name"], "Controls available on this device."))
+            self.device_pages[key] = page
+        self.navigate(key)
+        if not self.busy: self.device_pages[key].refresh()
+
+    def update_peripheral_controls(self):
+        for page in self.device_pages.values(): page.update_enabled()
+        for page in self.discovery_pages.values(): page.update_enabled()
 
     def mark_dirty(self, field):
         if not self.loading:
@@ -773,6 +930,7 @@ class Window(QMainWindow):
         self.monitoring.setEnabled(False)
         self.mouse_page.update_enabled()
         self.mat_page.update_enabled()
+        self.update_peripheral_controls()
         self.stop_button.setEnabled(is_effect)
         self.progress.setRange(0, 0)
         self.notify(title + "…")
@@ -814,6 +972,7 @@ class Window(QMainWindow):
                 failed()
         self.mouse_page.update_enabled()
         self.mat_page.update_enabled()
+        self.update_peripheral_controls()
         if self.closing:
             self.close()
 
