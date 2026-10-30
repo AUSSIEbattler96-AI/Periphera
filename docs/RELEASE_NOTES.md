@@ -1,4 +1,31 @@
-Periphera 0.3.0 adds an experimental Naga V2 Pro page alongside the
+# Periphera 0.4.0 — RGB mouse mats
+
+Adds all eight mouse-mat models currently supported by OpenRazer:
+Firefly, Firefly HyperFlux, Firefly V2, Firefly V2 Pro, Goliathus Chroma,
+Goliathus Extended Chroma, Goliathus Chroma 3XL and Strider Chroma.
+
+- Dedicated **Mouse mats** page with explicit selection for multiple mats.
+- Brightness, supported static/spectrum/breathing/wave/reactive/off effects,
+  manual reactive triggering and custom matrix colours.
+- Hardware-free preview for every model, with all hardware commands disabled.
+- Runtime feature detection and live matrix layout, plus device-type checks
+  for HyperFlux's shared USB ID and lighting-sync protection.
+- Both new modules and their tests included in Flatpak packaging and smoke checks.
+- See [MOUSE_MATS.md](MOUSE_MATS.md) for setup, variants and limitations.
+
+**Mouse-mat support needs physical owner testing.** Effect availability
+depends on the installed OpenRazer release. The host needs a current
+OpenRazer driver and desktop-session daemon; preview mode needs neither.
+Automatic mouse-click reactions, charging configuration and firmware updates
+are not included. The existing headset HID backend is unchanged.
+
+Install an updated bundle using `flatpak install --user ./periphera.flatpak`.
+The published 0.3.0 bundle predates this feature; use the 0.4.0 source or its
+corresponding build artifact until a newer release is published.
+
+## Previous release: 0.3.0
+
+Periphera 0.3.0 added an experimental Naga V2 Pro page alongside the
 existing Barracuda X Chroma controls.
 
 - DPI, polling, battery, power and logo/thumb-grid lighting through host OpenRazer.

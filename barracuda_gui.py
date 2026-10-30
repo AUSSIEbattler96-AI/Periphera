@@ -25,7 +25,7 @@ except ImportError as exc:
 
 from barracuda import Controller, PRESETS, color_value, diagnose, effect
 
-UI_VERSION = "0.3.0"
+UI_VERSION = "0.4.0"
 GREEN = "#44d62c"
 BG = "#0e1011"
 PANEL = "#191c1e"
@@ -238,7 +238,8 @@ class HeadsetArt(QWidget):
 
 
 class Window(QMainWindow):
-    def __init__(self, device=None, controller_factory=Controller, autorefresh=True, mouse_factory=None):
+    def __init__(self, device=None, controller_factory=Controller, autorefresh=True, mouse_factory=None,
+                 mat_factory=None):
         super().__init__()
         self.device, self.factory = device, controller_factory
         self.bus = queue.Queue()
@@ -262,6 +263,10 @@ class Window(QMainWindow):
         from naga import NagaController
         self.mouse_page = MousePage(self, mouse_factory or NagaController)
         self.pages["mouse"][1].addWidget(self.mouse_page)
+        from mousemat_gui import MouseMatPage
+        from mousemat import MouseMatController
+        self.mat_page = MouseMatPage(self, mat_factory or MouseMatController)
+        self.pages["mousemat"][1].addWidget(self.mat_page)
         self.navigate("overview")
         self.paint_status()
         self.paint_presets()
@@ -308,10 +313,13 @@ class Window(QMainWindow):
         nav.addSpacing(5)
         for name, title in (("overview", "Overview"), ("sound", "Sound"),
                             ("lighting", "Lighting"), ("diagnostics", "Diagnostics"),
-                            ("mouse", "Naga V2 Pro")):
+                            ("mouse", "Naga V2 Pro"), ("mousemat", "Mouse mats")):
             if name == "mouse":
                 nav.addSpacing(18)
                 nav.addWidget(text("MOUSE", 10, "#6d7c71", 600))
+            elif name == "mousemat":
+                nav.addSpacing(12)
+                nav.addWidget(text("DESK", 10, "#6d7c71", 600))
             w = button(title, lambda _=False, n=name: self.navigate(n), "nav", True)
             nav.addWidget(w)
             self.nav[name] = w
@@ -319,7 +327,7 @@ class Window(QMainWindow):
         nav.addWidget(text("UNOFFICIAL CONTROLLER", 9, "#718076", 600))
         nav.addSpacing(3)
         nav.addWidget(text("Linux  /  UI " + UI_VERSION, 11, MUTED))
-        nav.addWidget(text("Headset + mouse", 10, "#718076"))
+        nav.addWidget(text("Headset · mouse · mats", 10, "#718076"))
         nav.addSpacing(6)
 
         main = QWidget()
@@ -358,6 +366,7 @@ class Window(QMainWindow):
             "lighting": ("Chroma lighting", "Six zones. Make them yours."),
             "diagnostics": ("Diagnostics", "Connection details and the latest device response."),
             "mouse": ("Mouse control", "Performance, lighting and power. One place."),
+            "mousemat": ("Mouse-mat lighting", "Your desk. Your colours."),
         }
         for name, title in titles.items():
             page = QWidget()
@@ -659,13 +668,17 @@ class Window(QMainWindow):
         self.page_caption.setText(title[1])
         for key, b in self.nav.items():
             b.setChecked(key == name)
-        self.device_category.setText("DEVICES  /  MOUSE" if name == "mouse" else "DEVICES  /  AUDIO")
-        self.device_heading.setText("NAGA V2 PRO" if name == "mouse" else "BARRACUDA X CHROMA")
-        self.connection.setVisible(name != "mouse")
+        self.device_category.setText("DEVICES  /  MOUSE MATS" if name == "mousemat" else
+                                     "DEVICES  /  MOUSE" if name == "mouse" else "DEVICES  /  AUDIO")
+        self.device_heading.setText("RAZER CHROMA RGB" if name == "mousemat" else
+                                    "NAGA V2 PRO" if name == "mouse" else "BARRACUDA X CHROMA")
+        self.connection.setVisible(name not in ("mouse", "mousemat"))
 
     def refresh_current(self):
         if self.current_page == "mouse":
             return self.mouse_page.refresh()
+        if self.current_page == "mousemat":
+            return self.mat_page.refresh()
         return self.refresh()
 
     def mark_dirty(self, field):
@@ -748,6 +761,7 @@ class Window(QMainWindow):
             b.setEnabled(False)
         self.monitoring.setEnabled(False)
         self.mouse_page.update_enabled()
+        self.mat_page.update_enabled()
         self.stop_button.setEnabled(is_effect)
         self.progress.setRange(0, 0)
         self.notify(title + "…")
@@ -788,6 +802,7 @@ class Window(QMainWindow):
             if failed:
                 failed()
         self.mouse_page.update_enabled()
+        self.mat_page.update_enabled()
         if self.closing:
             self.close()
 

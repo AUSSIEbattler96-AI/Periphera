@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtDBus import QDBusMessage
 from barracuda_gui import Window
+from mousemat import MODELS
 
 app = QApplication.instance() or QApplication([])
 window = Window(autorefresh=False)
@@ -20,5 +21,12 @@ for panel in range(3):
     app.processEvents()
 assert not window.busy
 assert all(not b.isEnabled() for b in window.mouse_page.apply_buttons.values())
+window.navigate("mousemat")
+window.mat_page.preview.setChecked(True)
+for pid in MODELS:
+    window.mat_page.preview_model.setCurrentIndex(window.mat_page.preview_model.findData(pid))
+    app.processEvents()
+    assert all(not b.isEnabled() for b in window.mat_page.apply_buttons.values())
+assert not window.busy
 window.close()
-print("All pages rendered; preview commands disabled; QtDBus imported.")
+print("All pages and eight mouse-mat previews rendered; preview commands disabled; QtDBus imported.")

@@ -23,16 +23,16 @@
       "name": "periphera",
       "buildsystem": "simple",
       "build-commands": [
-        "install -Dm644 barracuda.py barracuda_gui.py naga.py naga_gui.py -t /app/lib/periphera/",
+        "install -Dm644 barracuda.py barracuda_gui.py naga.py naga_gui.py mousemat.py mousemat_gui.py -t /app/lib/periphera/",
         "install -Dm755 packaging/periphera /app/bin/periphera",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.desktop -t /app/share/applications/",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.metainfo.xml -t /app/share/metainfo/",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.svg /app/share/icons/hicolor/scalable/apps/io.github.AUSSIEbattler96_AI.Periphera.svg",
-        "install -Dm644 LICENSE README.md docs/HOST_SETUP.md docs/SUPPORT.md -t /app/share/doc/periphera/"
+        "install -Dm644 LICENSE README.md docs/HOST_SETUP.md docs/SUPPORT.md docs/MOUSE_MATS.md -t /app/share/doc/periphera/"
       ],
       "run-tests": true,
       "test-commands": [
-        "QT_QPA_PLATFORM=offscreen python3 -m unittest -v test_barracuda.py test_gui.py test_naga.py test_naga_gui.py",
+        "QT_QPA_PLATFORM=offscreen python3 -m unittest discover -v",
         "QT_QPA_PLATFORM=offscreen python3 scripts/smoke_gui.py"
       ],
       "sources": [

@@ -38,17 +38,21 @@ def parse_methods(xml):
 def typed_arguments(signatures, values):
     # Plain Python ints marshal as int32, which is wrong for OpenRazer's
     # uint16 DPI and byte RGB endpoints. Preserve the advertised wire type.
-    from PyQt6.QtCore import QMetaType, QVariant
+    from PyQt6.QtCore import QByteArray, QMetaType, QVariant
     types = {"y": QMetaType.Type.UChar, "q": QMetaType.Type.UShort,
              "i": QMetaType.Type.Int, "u": QMetaType.Type.UInt,
              "d": QMetaType.Type.Double, "b": QMetaType.Type.Bool,
-             "s": QMetaType.Type.QString}
+             "s": QMetaType.Type.QString, "ay": QMetaType.Type.QByteArray}
     if len(signatures) != len(values):
         raise MouseError("D-Bus argument count does not match introspection")
     arguments = []
     for signature, value in zip(signatures, values):
         if signature not in types:
             raise MouseError(f"Unsupported D-Bus argument type: {signature}")
+        if signature == "ay":
+            if not isinstance(value, (bytes, bytearray)):
+                raise MouseError("D-Bus byte arrays require bytes or bytearray")
+            value = QByteArray(value)
         variant = QVariant(value)
         if not variant.convert(QMetaType(types[signature].value)):
             raise MouseError(f"Cannot encode D-Bus argument as {signature}")
