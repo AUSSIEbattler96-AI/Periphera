@@ -27,7 +27,8 @@
         "install -Dm755 packaging/periphera /app/bin/periphera",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.desktop -t /app/share/applications/",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.metainfo.xml -t /app/share/metainfo/",
-        "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.svg /app/share/icons/hicolor/scalable/apps/io.github.AUSSIEbattler96_AI.Periphera.svg",
+        "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.png /app/share/icons/hicolor/512x512/apps/io.github.AUSSIEbattler96_AI.Periphera.png",
+        "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.png /app/lib/periphera/io.github.AUSSIEbattler96_AI.Periphera.png",
         "install -Dm644 LICENSE README.md docs/HOST_SETUP.md docs/SUPPORT.md docs/MOUSE_MATS.md -t /app/share/doc/periphera/"
       ],
       "run-tests": true,

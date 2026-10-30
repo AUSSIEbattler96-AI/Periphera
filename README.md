@@ -31,8 +31,11 @@ mouse and **eight Razer RGB mouse-mat models** into one Linux desktop app:
 sound, lighting, performance and power settings, with explicit Apply actions
 and hardware-free mouse and mouse-mat previews.
 
-**Version: 0.4.0 · Experimental prerelease.** Mouse-mat support is included
+**Version: 0.4.1 · Experimental prerelease.** Mouse-mat support is included
 in this version; install the matching bundle from GitHub Releases.
+
+The Flatpak launcher, application window and sidebar now use the transparent
+Venom kraken emblem. Device controls and host setup are unchanged from 0.4.0.
 
 | Device | Connection and backend | Validation |
 | --- | --- | --- |
@@ -113,6 +116,22 @@ You can also launch **Periphera** from your desktop menu.
 The release is a standalone GitHub-distributed bundle. To update, download and
 install the newer bundle. It is not a Flathub listing or an automatic-update
 repository.
+
+### Steam Deck: if Discover gets stuck
+
+In Desktop Mode, cancel the stalled install and close Discover. Open Konsole
+and install the downloaded bundle with visible progress and diagnostic output:
+
+```sh
+flatpak --verbose install --user --bundle ~/Downloads/periphera.flatpak
+```
+
+Adjust the filename if your browser saved a differently named copy. The first
+installation may also download the KDE runtime; the app bundle does not include
+that dependency. Answer the prompts shown in Konsole. If it also stalls, keep
+the last output lines: they distinguish a runtime download, a transaction lock
+and an actual installation error. This is a diagnostic alternative to Discover,
+not a confirmed fix for every Steam Deck installation stall.
 
 ### Set up the host
 

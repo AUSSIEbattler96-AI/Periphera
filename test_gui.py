@@ -1,14 +1,17 @@
 """Qt UI checks with a simulated controller; no hardware commands are sent."""
 import copy
 import os
+from pathlib import Path
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 import threading
 import time
+import tempfile
 import unittest
+from unittest.mock import patch
 
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QLabel
 from barracuda import DeviceError, PRESETS
-from barracuda_gui import Window
+from barracuda_gui import APP_ID, Window, application_icon
 
 SAMPLE = {
     "device": "/dev/hidraw1",
@@ -101,6 +104,31 @@ class GuiTests(unittest.TestCase):
 
     def writes(self):
         return [x for x in FakeController.calls if x[0] in ("set", "curve", "rgb", "release_rgb")]
+
+    def test_kraken_icon_renders_with_transparency_in_window_and_sidebar(self):
+        image = self.window.windowIcon().pixmap(128, 128).toImage()
+        self.assertFalse(image.isNull())
+        self.assertTrue(image.hasAlphaChannel())
+        for x, y in ((0, 0), (127, 0), (0, 127), (127, 127)):
+            self.assertEqual(image.pixelColor(x, y).alpha(), 0)
+        colors = [image.pixelColor(x, y) for y in range(128) for x in range(128)]
+        self.assertGreater(sum(c.alpha() > 128 for c in colors), 128 * 128 // 5)
+        self.assertTrue(any(c.alpha() > 240 and c.green() > 180 and c.red() < c.green() * .8 for c in colors))
+        self.assertTrue(any(c.alpha() > 240 and min(c.red(), c.green(), c.blue()) > 200 for c in colors))
+        mark = self.window.findChild(QLabel, "brandLogo")
+        self.assertIsNotNone(mark)
+        self.assertFalse(mark.pixmap().isNull())
+        self.assertEqual(self.writes(), [])
+
+    def test_packaged_icon_loads_without_the_source_packaging_directory(self):
+        source = Path(__file__).resolve().parent / "packaging" / f"{APP_ID}.png"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / f"{APP_ID}.png").write_bytes(source.read_bytes())
+            with patch("barracuda_gui.__file__", str(root / "barracuda_gui.py")):
+                image = application_icon().pixmap(64, 64).toImage()
+            self.assertFalse(image.isNull())
+            self.assertEqual(image.pixelColor(0, 0).alpha(), 0)
 
     def test_launch_and_read_refresh_never_write(self):
         self.assertEqual(FakeController.calls, [])

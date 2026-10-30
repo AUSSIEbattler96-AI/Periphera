@@ -11,6 +11,9 @@ from mousemat import MODELS
 
 app = QApplication.instance() or QApplication([])
 window = Window(autorefresh=False)
+assert not window.windowIcon().isNull(), "The packaged application icon is missing"
+icon = window.windowIcon().pixmap(64, 64).toImage()
+assert icon.hasAlphaChannel() and icon.pixelColor(0, 0).alpha() == 0
 window.show()
 for page in window.pages:
     window.navigate(page)

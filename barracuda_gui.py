@@ -6,6 +6,7 @@ thread and only one operation runs at a time.
 """
 import json
 import os
+from pathlib import Path
 import queue
 import sys
 import threading
@@ -13,7 +14,7 @@ import time
 
 try:
     from PyQt6.QtCore import Qt, QRectF, QPointF, QTimer
-    from PyQt6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QPalette, QKeySequence, QShortcut, QRadialGradient
+    from PyQt6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPen, QPalette, QKeySequence, QShortcut, QRadialGradient
     from PyQt6.QtWidgets import (
         QApplication, QMainWindow, QWidget, QFrame, QLabel, QPushButton,
         QVBoxLayout, QHBoxLayout, QStackedWidget, QScrollArea,
@@ -25,13 +26,24 @@ except ImportError as exc:
 
 from barracuda import Controller, PRESETS, color_value, diagnose, effect
 
-UI_VERSION = "0.4.0"
+UI_VERSION = "0.4.1"
+APP_ID = "io.github.AUSSIEbattler96_AI.Periphera"
 GREEN = "#44d62c"
 BG = "#0e1011"
 PANEL = "#191c1e"
 MUTED = "#99a39d"
 TEXT = "#edf1ed"
 RED = "#f39a90"
+
+
+def application_icon():
+    """Load the same transparent icon from a source checkout or the Flatpak."""
+    root = Path(__file__).resolve().parent
+    for path in (root / "packaging" / f"{APP_ID}.png", root / f"{APP_ID}.png"):
+        if path.is_file():
+            return QIcon(str(path))
+    return QIcon.fromTheme(APP_ID)
+
 
 STYLE = """
 QWidget { color: #edf1ed; font-family: "DejaVu Sans"; font-size: 13px; }
@@ -251,6 +263,7 @@ class Window(QMainWindow):
         self.last_json = "{}"
         self.draft_preset = "music"
         self.setWindowTitle("Periphera")
+        self.setWindowIcon(application_icon())
         self.resize(1180, 860)
         self.setMinimumSize(980, 700)
         self.setStyleSheet(STYLE)
@@ -297,14 +310,12 @@ class Window(QMainWindow):
         outer.addWidget(rail)
         nav = column(rail, 7, 16)
         nav.addSpacing(17)
-        mark = row(4)
-        for h in (17, 29, 22):
-            bar = QFrame()
-            bar.setFixedSize(5, h)
-            bar.setStyleSheet("background:#44d62c; border-radius:2px;")
-            mark.addWidget(bar, 0, Qt.AlignmentFlag.AlignBottom)
-        mark.addStretch()
-        nav.addLayout(mark)
+        mark = QLabel()
+        mark.setObjectName("brandLogo")
+        mark.setAccessibleName("Periphera kraken logo")
+        mark.setPixmap(application_icon().pixmap(40, 40))
+        mark.setFixedSize(40, 40)
+        nav.addWidget(mark, 0, Qt.AlignmentFlag.AlignLeft)
         nav.addSpacing(9)
         nav.addWidget(text("PERIPHERA", 17, weight=700))
         nav.addWidget(text("Y O U R  D E V I C E S", 9, GREEN, 600))
@@ -992,7 +1003,8 @@ def launch(device=None):
     app = QApplication.instance() or QApplication([sys.argv[0]])
     app.setApplicationName("periphera")
     app.setApplicationVersion(UI_VERSION)
-    app.setDesktopFileName("io.github.AUSSIEbattler96_AI.Periphera")
+    app.setDesktopFileName(APP_ID)
+    app.setWindowIcon(application_icon())
     app.setStyle("Fusion")
     palette = app.palette()
     palette.setColor(QPalette.ColorRole.Window, QColor(BG))

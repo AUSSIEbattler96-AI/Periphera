@@ -1,3 +1,32 @@
+Periphera 0.4.1 — validation updated 30 October 2026 (Australia/Perth)
+
+Completed locally for the kraken branding update:
+- All 110 automated tests pass with PyQt6/Qt 6.12 in an isolated test environment.
+- The new GUI checks render the window icon with transparent corners and green
+  and ivory artwork, check the sidebar mark, and load the packaged icon without
+  a source packaging directory or desktop icon-theme dependency.
+- The application icon is a 512 x 512 RGBA PNG with real transparent margins.
+- Both Flatpak icon install commands preserve the source image byte-for-byte:
+  the hicolor launcher icon and the app's own window/sidebar icon copy.
+- Manifest JSON and AppStream XML parse; the release request and UI version
+  agree on 0.4.1. The explicit request selects a published experimental release.
+- barracuda.py, naga.py, naga_gui.py, mousemat.py and mousemat_gui.py are
+  byte-for-byte unchanged from 0.4.0. The application ID is unchanged.
+
+Release gates on GitHub Actions:
+- Ubuntu tests, simulated real-session D-Bus checks and desktop/AppStream
+  validation must pass before the Flatpak build starts.
+- The SDK runs the full suite and GUI smoke checks, including icon transparency.
+- The built Flatpak must pass an installation/startup check, and every release
+  download must match SHA256SUMS before publication.
+
+The reported Discover installation stall on Steam Deck is not reproduced or
+claimed fixed here. README instructions collect verbose terminal output so
+runtime downloads, locks and installation errors can be distinguished.
+
+Historical validation for 0.4.0 follows.
+======================================================================
+
 Periphera 0.4.0 — validation updated 30 October 2026 (Australia/Melbourne)
 
 Completed locally for the RGB mouse-mat update:

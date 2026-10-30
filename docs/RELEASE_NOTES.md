@@ -1,4 +1,20 @@
-# Periphera 0.4.0 — RGB mouse mats
+# Periphera 0.4.1 — Kraken branding
+
+- Replace the old bar-chart application icon with the green Venom kraken,
+  including the ship and serpent, on a genuinely transparent background.
+- Install a 512 × 512 RGBA icon for the Flatpak desktop launcher and use the
+  same emblem for the application window and sidebar.
+- Keep the existing application ID, device controls and host setup.
+- Document a verbose Konsole installation path for Steam Deck users when
+  Discover stalls, so runtime downloads and installation errors are visible.
+
+Install or update with `flatpak install --user ./periphera.flatpak` and reopen
+Periphera to see the new icon. Mouse and mouse-mat support remains experimental
+with the same hardware-testing limitations as 0.4.0.
+
+## Previous release: 0.4.0
+
+### RGB mouse mats
 
 Adds all eight mouse-mat models currently supported by OpenRazer:
 Firefly, Firefly HyperFlux, Firefly V2, Firefly V2 Pro, Goliathus Chroma,
