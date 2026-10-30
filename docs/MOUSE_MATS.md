@@ -1,6 +1,6 @@
 # Razer RGB mouse mats
 
-Periphera 0.5.0 discovers all mouse mats reported by OpenRazer. The models below are also included in the hardware-free preview selector.
+Periphera 0.4.0 adds every mouse-mat model currently listed by OpenRazer.
 The app uses the host's `org.razer` session service, with no direct mouse-mat
 USB packets, extra kernel module or additional Flatpak permissions.
 
@@ -16,10 +16,9 @@ USB packets, extra kernel module or additional Flatpak permissions.
 | Strider Chroma | `1532:0c05` | Yes |
 
 Surface, colour and special editions are covered when they report the same
-USB ID and the driver exposes them as a mouse mat. The generic discovery path
-also accepts newer models when the host daemon supports them. HyperFlux's mouse
-object appears under Mice even though it can share the mat's product ID.
-Passive mats without RGB, such as Gigantus V2,
+USB ID and the driver exposes them as a mouse mat. Different USB IDs are not
+assumed compatible. HyperFlux's mouse object is excluded even though it can
+share the mat's product ID. Passive mats without RGB, such as Gigantus V2,
 Atlas and ordinary Strider, have no RGB settings to control.
 
 ## Setup
@@ -29,13 +28,13 @@ Atlas and ordinary Strider, have no RGB settings to control.
    Its driver, permissions and desktop-session daemon must work before
    Periphera can find a mat. Older versions may lack newer models.
 2. Connect the mat by USB and launch Periphera as your normal desktop user.
-3. Open **Home** and click **Scan for devices**. Select your individual mat
-   under **Mouse mats** in the sidebar before applying a setting.
-4. Turn off shared lighting on Home and explicitly apply that preference if
-   needed. Per-device actions never change that global setting; they block writes
+3. Open **Mouse mats** and click **Scan for mats**. With multiple mats,
+   select the intended model/serial before applying a setting.
+4. Turn off OpenRazer lighting synchronization in its configuration if
+   enabled. Periphera does not change that global setting; it blocks writes
    when synchronization is on or its state cannot be read.
 
-No mat is needed for **Home → Mouse-mat previews**. Select a model from the
+No mat is needed for **Preview without a mat**. Select a model from the
 preview list to explore its layout. Preview values are examples, all hardware
 commands are disabled, and leaving preview clears the example readings.
 
@@ -47,11 +46,11 @@ commands are disabled, and leaving preview clears the example readings.
 - **Wave:** choose the direction. It is absent on Goliathus and HyperFlux
   in the current upstream device definitions.
 - **Reactive:** choose a colour and speed, apply the effect, then use
-  **Apply trigger reactive lighting**. Automatic reactions to mouse clicks are not
+  **Test reactive pulse**. Automatic reactions to mouse clicks are not
   implemented; the app does not capture desktop input.
-- **Custom colours:** pick a colour and click individual driver LED slots.
-  **Fill with colour** edits all slots locally; **Apply LED colours** uploads
-  the complete frame and activates custom mode.
+- **Custom colours:** one six-digit RGB colour per driver matrix slot.
+  **Fill with primary colour** edits all slots locally; **Apply custom
+  colours** uploads the complete frame and activates custom mode.
 
 The Goliathus family exposes one shared colour for its RGB edge. Other mats
 use multiple matrix slots. Live dimensions come from the daemon, rather

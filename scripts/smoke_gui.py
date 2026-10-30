@@ -8,14 +8,9 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtDBus import QDBusMessage
 from barracuda_gui import Window
 from mousemat import MODELS
-import jeepney
-from openrazer_backend import ENDPOINTS, TYPES
 
 app = QApplication.instance() or QApplication([])
 window = Window(autorefresh=False)
-assert window.current_page == "home"
-assert "type:mouse" in window.nav and "mouse" not in window.nav
-assert len(ENDPOINTS) >= 171 and "keyboard" in TYPES
 assert not window.windowIcon().isNull(), "The packaged application icon is missing"
 icon = window.windowIcon().pixmap(64, 64).toImage()
 assert icon.hasAlphaChannel() and icon.pixelColor(0, 0).alpha() == 0
@@ -37,4 +32,4 @@ for pid in MODELS:
     assert all(not b.isEnabled() for b in window.mat_page.apply_buttons.values())
 assert not window.busy
 window.close()
-print("Discovery, all peripheral categories and legacy previews rendered; no hardware opened; Jeepney and QtDBus imported.")
+print("All pages and eight mouse-mat previews rendered; preview commands disabled; QtDBus imported.")

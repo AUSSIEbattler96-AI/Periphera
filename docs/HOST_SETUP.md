@@ -21,63 +21,47 @@ menu. Diagnostics → Check device access should show readable/writable true.
 The rule grants access to the active local user and is restricted to the
 headset's USB ID. The app itself must run without sudo.
 
-## All OpenRazer peripherals
+## Naga V2 Pro
 
 Install **OpenRazer 3.10.3 or newer** using the instructions for your host
-distribution at <https://openrazer.github.io/#download>. Install a newer release
-if it introduced your device. Its kernel driver, device permissions and
-user-session daemon must all work on the host. A Flatpak cannot install a host
-kernel module. Use headers matching the exact kernel you run.
+distribution at <https://openrazer.github.io/#download>. Its kernel driver,
+device permissions, and user-session daemon must all be working. A Flatpak
+cannot install a host kernel module. Use the matching kernel headers if your
+distribution uses DKMS; follow OpenRazer's distro instructions for groups and
+session restart requirements.
 
-Follow the package's device permission group instructions and fully restart the
-desktop session after changing group membership. Arch packages changed from
-`plugdev` to `openrazer` in November 2025; SteamOS can ship an older package using
-`plugdev`. The daemon's own error message identifies the group it requires.
+On Arch/CachyOS, use the OpenRazer Arch instructions and headers for the
+kernel you actually run; do not substitute generic `linux-headers` for a
+CachyOS or LTS kernel. The GUI talks to `org.razer` on your **session** bus.
+It does not need OpenRazer's Python client installed inside the Flatpak.
 
-Periphera communicates with `org.razer` on your **session** bus. It includes its
-own D-Bus client; OpenRazer's Python client does not need installing inside the
-Flatpak. Run the app and daemon as your normal desktop user.
+Connect either the USB cable (`1532:00a7`) or original 2.4 GHz receiver
+(`1532:00a8`), wake the mouse, open **Naga V2 Pro**, and click **Scan for mouse**.
+If more than one is found, choose the serial/connection you want. No settings
+are applied during scanning.
 
-Open **Home → Scan for devices**. Each device reported by OpenRazer appears
-under its type in the sidebar. Select it to read capabilities and controls.
-Naga Trinity (`1532:0067`) is included. Connection support follows OpenRazer:
-Bluetooth or a dock cannot be configured unless the host driver exposes that
-connection. The older Naga V2 Pro adapter is no longer the discovery boundary.
+Bluetooth and connections through Mouse Dock Pro are not supported by this
+adapter. No mouse is needed for **Preview without a mouse**; it cannot send
+commands. Mouse support has not been tested on a physical Naga V2 Pro by this
+project.
 
-For independent lighting, turn off **Share lighting effects across devices**
-on Home and choose **Apply OpenRazer preferences**, then refresh the device.
-This is an explicit global preference; per-device Apply actions never change it.
+If OpenRazer lighting synchronization is enabled, disable it in your
+OpenRazer configuration before using per-mouse lighting. The app will refuse
+lighting changes while sync is on, because sync may affect other peripherals.
+It does not change that global setting automatically.
 
-## Steam Deck / SteamOS
+## RGB mouse mats
 
-Installing the Flatpak in Discover installs the app and runtime, not OpenRazer's
-host driver. SteamOS needs its own Neptune kernel headers, not generic Arch
-`linux-headers`. For example, the tested package lookup on SteamOS 3.8.16 with
-kernel `6.16.12-valve24.5-1-neptune-616-gb2f7cfe85e45` offered
-`linux-neptune-616-headers` version `6.16.12.valve24.5-1` and OpenRazer 3.10.3.
-Check the packages for your actual SteamOS/kernel version before installing.
-Do not switch SteamOS repositories or disable package signature checking to
-work around a mismatched package. System updates can remove host additions.
+Install a **current OpenRazer release** on the host using the same upstream
+instructions above. Older releases may lack newer mats. Connect the mat by
+USB, open **Mouse mats**, click **Scan for mats**, then choose the
+intended mat if several are connected. Read [MOUSE_MATS.md](MOUSE_MATS.md)
+for the eight supported models, exact USB IDs and lighting controls.
 
-To identify a setup problem in Desktop Mode, open Konsole and run:
-
-```sh
-cat /etc/os-release
-uname -r
-id -nG
-openrazer-daemon --foreground --verbose
-```
-
-- **command not found**: the host daemon is unavailable; install the host packages.
-- **not a member of plugdev**: for the older package above, run
-  `sudo gpasswd -a deck plugdev`, then fully restart the Deck. Closing Konsole
-  alone does not update the desktop session's supplementary groups.
-- **unable to lock on the pidfile**: another daemon instance may already run.
-- Driver/module errors need the exact kernel, headers version and DKMS build log;
-  reinstalling only the Flatpak cannot fix a missing kernel module.
-
-If foreground startup succeeds, leave Konsole open while testing a device scan.
-Hardware-free previews are available from Home without any driver setup.
+The mat page uses the existing `org.razer` session-service permission.
+No additional udev rule from Periphera is needed for mouse mats; OpenRazer
+owns their drivers and permissions. Disable OpenRazer lighting sync before
+per-mat lighting changes. Hardware-free previews need no OpenRazer install.
 
 ## Flatpak permissions
 
@@ -88,8 +72,10 @@ Hardware-free previews are available from Home without any driver setup.
 - `--talk-name=org.razer` grants access to the host OpenRazer session service.
 - Wayland, fallback X11 and IPC allow the desktop interface to display.
 - No home-directory, network, full session-bus or system-bus permission is
-  requested. OpenRazer can control other Razer devices, and Periphera uses the selected device identity and its live
-  capabilities to scope writes. It does not grant access to unrelated D-Bus names.
+  requested. OpenRazer can control other Razer devices, but this adapter
+  restricts mouse writes to the two Naga V2 Pro USB IDs. Mouse-mat writes
+  require one of the eight listed USB IDs, the selected serial, and a
+  daemon object identified as a mouse mat.
 
 To use only the mouse and/or mats with less device exposure:
 

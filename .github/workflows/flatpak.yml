@@ -33,7 +33,7 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pyqt6 python3-dbus python3-gi python3-jeepney dbus-x11 appstream desktop-file-utils
+          sudo apt-get install -y python3-pyqt6 python3-dbus python3-gi dbus-x11 appstream desktop-file-utils
       - name: Controller and GUI tests
         env:
           QT_QPA_PLATFORM: offscreen
@@ -68,13 +68,8 @@ jobs:
           from PyQt6.QtDBus import QDBusMessage
           from barracuda_gui import Window
           from mousemat import MODELS
-          import jeepney
-          from openrazer_backend import ENDPOINTS, TYPES
           app = QApplication([])
           window = Window(autorefresh=False)
-          assert window.current_page == "home"
-          assert len(ENDPOINTS) >= 171
-          assert all("type:" + kind in window.nav for kind in TYPES)
           window.show()
           window.navigate("mouse")
           window.mouse_page.preview.setChecked(True)

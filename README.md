@@ -5,7 +5,7 @@
 <h1 align="center">Periphera</h1>
 
 <p align="center">
-  <strong>Your peripherals. Your setup. Your control.</strong><br>
+  <strong>Your headset. Your mouse. Your desk. Your control.</strong><br>
   Open-source peripheral control for Linux, with a charcoal-and-green desktop interface.
 </p>
 
@@ -26,67 +26,61 @@
 
 ---
 
-Periphera brings **all peripherals reported by your host OpenRazer daemon**
-into one Venom-green Linux desktop app, alongside its direct **Barracuda X
-Chroma** headset backend. That includes the **Naga Trinity**, other supported
-mice, keyboards, keypads, headsets, mouse mats, cases, monitors and accessories.
+Periphera brings the **Razer Barracuda X Chroma** headset, **Razer Naga V2 Pro**
+mouse and **eight Razer RGB mouse-mat models** into one Linux desktop app:
+sound, lighting, performance and power settings, with explicit Apply actions
+and hardware-free mouse and mouse-mat previews.
 
-**Version: 0.5.0 · Experimental prerelease.**
+**Version: 0.4.1 · Experimental prerelease.** Mouse-mat support is included
+in this version; install the matching bundle from GitHub Releases.
 
-### Scan. Select. Make it yours.
+The Flatpak launcher, application window and sidebar now use the transparent
+Venom kraken emblem. Device controls and host setup are unchanged from 0.4.0.
 
-1. Open **Home** and choose **Scan for devices**.
-2. Connected devices appear under their peripheral type in the sidebar.
-3. Select a device to load the controls its installed driver actually exposes.
-4. Edit a setting and choose **Apply**. Scanning, navigation and editing drafts
-   never apply settings automatically.
+| Device | Connection and backend | Validation |
+| --- | --- | --- |
+| **Barracuda X Chroma** | 2.4 GHz dongle · direct HID | Owner-confirmed status, RGB, EQ preset switching and sidetone |
+| **Naga V2 Pro** | USB cable or original receiver · host OpenRazer daemon | Experimental adapter; simulated tests only, physical hardware testing outstanding |
+| **Mouse mats** | USB · host OpenRazer daemon | All eight upstream-supported models; simulated tests only, physical owner testing outstanding |
 
-The sidebar has one entry per peripheral type, with individual devices beneath
-it. It does not list a catalogue of unconnected models or separate control modules.
-Duplicate model names are distinguished by their device identifiers. Rescanning
-removes disconnected devices and invalidates stale control pages.
+> This is an independent project, not an official Razer application or full
+> Synapse compatibility. Preview values are examples, not live device readings.
 
 ## What you can control
 
-| Area | Controls shown when the device supports them |
+| Area | Barracuda X Chroma | Naga V2 Pro | RGB mouse mats |
+| --- | --- | --- | --- |
+| **Sound** | EQ and microphone monitoring / sidetone | — | — |
+| **Performance** | — | DPI and polling rate | — |
+| **Lighting** | Six-zone RGB | Separate logo and thumb-grid lighting | Brightness, static/spectrum/breathing/off, supported wave/reactive effects and custom colours |
+| **Power** | Battery/status and power saving | Battery and power settings | — |
+
+Capability detection and diagnostic responses help show what the connected
+backend supports. Mouse and mouse-mat previews let you explore the interface
+without connecting hardware or installing OpenRazer; **preview mode cannot send commands**.
+
+### RGB mouse mats
+
+| Model | USB ID |
 | --- | --- |
-| **Lighting** | Zone brightness and enable state; static, spectrum, breathing, wave, wheel, reactive, starlight, blinking and ripple effects |
-| **Custom colours** | Individual RGB colours across the live driver's complete multi-row LED matrix |
-| **Performance** | DPI, discrete legacy sensitivity options, DPI stages and supported polling rates |
-| **Scroll** | Tactile/free-spin mode, acceleration and Smart Reel where OpenRazer exposes them |
-| **Power** | Battery and charging status, idle timeout, low-battery warning and charging lighting |
-| **Keys & macros** | Gaming/macro modes, profile LEDs, key-switch optimisation and macro sequences with key, URL and host-script actions |
-| **Accessories** | Supported ARGB channel brightness/LED counts, charging zones, Kraken colour/intensity and HyperPolling controls |
-| **Host preferences** | Explicit shared-lighting and screensaver-lighting preferences |
-| **Barracuda X Chroma** | Existing EQ, microphone monitoring, power saving and six-zone lighting through its direct HID backend |
+| Firefly (including editions using this ID) | `1532:0c00` |
+| Firefly HyperFlux | `1532:0068` |
+| Firefly V2 | `1532:0c04` |
+| Firefly V2 Pro | `1532:0c08` |
+| Goliathus Chroma | `1532:0c01` |
+| Goliathus Extended Chroma | `1532:0c02` |
+| Goliathus Chroma 3XL | `1532:0c06` |
+| Strider Chroma | `1532:0c05` |
 
-**Device discovery is not restricted to a hardcoded product list.** A newer
-OpenRazer-supported device can appear without a Periphera model update. Controls
-are offered only when their documented method and signature are advertised by
-the selected device. Future API features may still need an app update.
+Select **Mouse mats** in the sidebar, click **Scan for mats**, then choose
+your device. Effects follow the installed driver's capabilities; wave is
+not offered for the single-colour Goliathus family or Firefly HyperFlux.
+Custom colours use the live driver's matrix layout. See the
+[mouse-mat guide](docs/MOUSE_MATS.md) for setup, variants and limitations.
 
-> Hardware support depends on the OpenRazer version installed on your host and
-> the device's connection mode. This is an independent project, not an official
-> Razer application or full Synapse compatibility. Generic integration is tested
-> with simulated devices; physical owner testing remains outstanding.
-
-OpenRazer's lighting synchronization must be off before editing one device's
-lighting. You can change that preference explicitly on **Home**. Commands are
-revalidated against the selected device before sending, and diagnostic output
-records the response. Daemon readback may be cached; confirm changes physically.
-
-Hardware-free mouse and mouse-mat previews remain available from **Home**.
-Preview values are examples and **preview mode cannot send commands**.
-See [support details](docs/SUPPORT.md) and the [mouse-mat guide](docs/MOUSE_MATS.md).
+See [support details](docs/SUPPORT.md) for the exact boundaries and missing features.
 
 ## A look inside
-
-| Home · Device discovery | Naga Trinity · Performance |
-| :---: | :---: |
-| ![Home with simulated connected devices](previews/discovery-050.png) | ![Naga Trinity controls with simulated responses](previews/trinity-050.png) |
-
-These 0.5.0 interface previews use simulated device responses. The specialist
-headset controls and hardware-free previews are shown below.
 
 | Mouse · Performance | Headset · Sound |
 | :---: | :---: |
@@ -141,14 +135,17 @@ not a confirmed fix for every Steam Deck installation stall.
 
 ### Set up the host
 
-Follow [HOST_SETUP.md](docs/HOST_SETUP.md) for **OpenRazer 3.10.3+ on the host**
-and the Barracuda headset's permissions. Install a newer OpenRazer release if
-your peripheral was added after 3.10.3. Host kernel drivers cannot be installed
-inside the Flatpak. Existing Barracuda users can keep their current udev rule.
+Follow [HOST_SETUP.md](docs/HOST_SETUP.md) for headset permissions and
+**OpenRazer 3.10.3+** for Naga control and a current OpenRazer release for mouse mats. Host drivers cannot be installed inside
+the Flatpak. Existing headset users can keep their current udev rule.
 
-The Naga Trinity (`1532:0067`) is included through generic discovery. USB,
-receiver, Bluetooth and dock visibility follow the installed OpenRazer driver;
-Periphera does not add support for connections the host driver cannot expose.
+| Device | Supported connection | USB ID |
+| --- | --- | --- |
+| Barracuda X Chroma | 2.4 GHz dongle | `1532:0574` |
+| Naga V2 Pro | USB cable | `1532:00a7` |
+| Naga V2 Pro | Original receiver | `1532:00a8` |
+
+Bluetooth and Mouse Dock Pro configuration are not supported.
 
 The Flatpak requests broad device access for headset hidraw and a narrowly
 named D-Bus permission for OpenRazer. It requests no network or home-directory
@@ -156,24 +153,23 @@ access.
 
 ### Try the device previews
 
-On **Home**, choose **Mouse preview** or **Mouse-mat previews**. No hardware
-or OpenRazer installation is required. The mouse-mat preview offers all eight
-previously included models. Apply buttons are disabled in preview mode.
+Select **Naga V2 Pro** in the sidebar and enable **Preview without a mouse**.
+No mouse or OpenRazer installation is required to explore this read-only mode.
+
+For mats, select **Mouse mats**, enable **Preview without a mat**, and
+choose any of the eight models from the preview list. All Apply buttons are disabled.
 
 ### Run or update a native installation
 
 For an existing installation, close the GUI and replace the files in your
 `barracuda-linux` directory with the new source archive. Your installed
-`python-pyqt6` package and headset udev rule remain suitable. Install
-`python-jeepney` as the additional dependency for generic OpenRazer control. Launch as before:
+`python-pyqt6` package and headset udev rule remain suitable. Launch as before:
 
 ```sh
 python3 barracuda.py gui
 ```
 
-For a new native installation on Arch/CachyOS, install `python-pyqt6` and
-`python-jeepney` first. For a Python virtual environment, use
-`python3 -m pip install -r requirements.txt`.
+For a new native installation on Arch/CachyOS, install `python-pyqt6` first.
 Other distributions may package `PyQt6.QtDBus` separately.
 
 The headset CLI still needs only Python's standard library.
@@ -210,12 +206,14 @@ manual dispatch. It checks backend/UI tests, real D-Bus wire types against a
 simulated service, desktop metadata, the Flatpak build and the installed app,
 then uploads a downloadable artifact.
 
-The 0.5.0 suite covers generic device discovery, all peripheral types, Trinity
-controls, live capability filtering, mixed devices, disconnection, lighting-sync
-guards, multi-row LED uploads and typed DPI-stage/macro payloads. CI also exercises
-real D-Bus messages against a simulated service. Read [VALIDATION.txt](VALIDATION.txt)
-and [SUPPORT.md](docs/SUPPORT.md) for the distinction between simulated validation
-and physical owner testing.
+The [first successful build](https://github.com/AUSSIEbattler96-AI/Periphera/actions/runs/40892218019)
+passed all **65 tests** on Ubuntu and inside the Flatpak SDK, the simulated
+D-Bus integration test, metadata validation and an installation/startup check.
+The 0.4.0 update adds mouse-mat controller/UI tests and a byte-array matrix
+case to the simulated D-Bus integration check. Physical Naga V2 Pro and
+mouse-mat testing is still outstanding. Read
+[VALIDATION.txt](VALIDATION.txt) and [SUPPORT.md](docs/SUPPORT.md) for what was
+actually tested.
 
 Release tags use the `v0.3.0` format. After the workflow is green, a successful
 tag build creates a **draft prerelease** with the Flatpak, source ZIP, host setup
@@ -234,8 +232,6 @@ setting it to false leaves a draft.
 
 Licensed under [GPL-3.0-or-later](LICENSE), compatible with the GPL edition of
 PyQt6 used by this package. OpenRazer is a separate host dependency.
-The Flatpak bundles Jeepney (MIT licensed) for D-Bus communication. Public API
-metadata in `openrazer_catalog.json` records the exact upstream source commit.
 
 Razer, Barracuda, Naga, Firefly, Goliathus, Strider and Chroma are trademarks of their respective owner.
 Periphera is not affiliated with or endorsed by Razer.
