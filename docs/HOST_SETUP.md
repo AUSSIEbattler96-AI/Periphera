@@ -50,6 +50,19 @@ OpenRazer configuration before using per-mouse lighting. The app will refuse
 lighting changes while sync is on, because sync may affect other peripherals.
 It does not change that global setting automatically.
 
+## RGB mouse mats
+
+Install a **current OpenRazer release** on the host using the same upstream
+instructions above. Older releases may lack newer mats. Connect the mat by
+USB, open **Mouse mats**, click **Scan for mats**, then choose the
+intended mat if several are connected. Read [MOUSE_MATS.md](MOUSE_MATS.md)
+for the eight supported models, exact USB IDs and lighting controls.
+
+The mat page uses the existing `org.razer` session-service permission.
+No additional udev rule from Periphera is needed for mouse mats; OpenRazer
+owns their drivers and permissions. Disable OpenRazer lighting sync before
+per-mat lighting changes. Hardware-free previews need no OpenRazer install.
+
 ## Flatpak permissions
 
 - `--device=all` exposes hidraw nodes needed by the existing headset backend.
@@ -60,9 +73,11 @@ It does not change that global setting automatically.
 - Wayland, fallback X11 and IPC allow the desktop interface to display.
 - No home-directory, network, full session-bus or system-bus permission is
   requested. OpenRazer can control other Razer devices, but this adapter
-  restricts writes to the two Naga V2 Pro USB IDs and the selected serial.
+  restricts mouse writes to the two Naga V2 Pro USB IDs. Mouse-mat writes
+  require one of the eight listed USB IDs, the selected serial, and a
+  daemon object identified as a mouse mat.
 
-To use the mouse alone with less device exposure:
+To use only the mouse and/or mats with less device exposure:
 
 ```sh
 flatpak override --user --nodevice=all io.github.AUSSIEbattler96_AI.Periphera

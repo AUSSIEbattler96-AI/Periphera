@@ -23,7 +23,7 @@ def service():
 
     class Manager(dbus.service.Object):
         @dbus.service.method("razer.devices", out_signature="as")
-        def getDevices(self): return ["WIRETEST"]
+        def getDevices(self): return ["WIRETEST", "MATWIRETEST"]
 
         @dbus.service.method("razer.daemon", out_signature="s")
         def version(self): return "3.12.4-simulated"
@@ -95,8 +95,62 @@ def service():
         @dbus.service.method("razer.device.lighting.chroma")
         def setSpectrum(self): pass
 
+    class Mat(dbus.service.Object):
+        brightness, frame = 75.0, None
+
+        @dbus.service.method("razer.device.misc", out_signature="ai")
+        def getVidPid(self): return [0x1532, 0x0C08]
+
+        @dbus.service.method("razer.device.misc", out_signature="s")
+        def getDeviceType(self): return "mousemat"
+
+        @dbus.service.method("razer.device.misc", out_signature="ai")
+        def getMatrixDimensions(self): return [1, 17]
+
+        @dbus.service.method("razer.device.lighting.brightness", out_signature="d")
+        def getBrightness(self): return self.brightness
+
+        @dbus.service.method("razer.device.lighting.brightness", in_signature="d")
+        def setBrightness(self, value):
+            assert isinstance(value, dbus.Double)
+            self.brightness = value
+
+        @dbus.service.method("razer.device.lighting.chroma", in_signature="yyy")
+        def setStatic(self, red, green, blue):
+            assert all(isinstance(v, dbus.Byte) for v in (red, green, blue))
+            assert (red, green, blue) == (68, 214, 44)
+
+        @dbus.service.method("razer.device.lighting.chroma", in_signature="yyyyyy")
+        def setBreathDual(self, red, green, blue, red2, green2, blue2):
+            colors = (red, green, blue, red2, green2, blue2)
+            assert all(isinstance(v, dbus.Byte) for v in colors)
+            assert tuple(colors) == (68, 214, 44, 145, 70, 255)
+
+        @dbus.service.method("razer.device.lighting.chroma", in_signature="i")
+        def setWave(self, direction):
+            assert isinstance(direction, dbus.Int32) and direction == 2
+
+        @dbus.service.method("razer.device.lighting.chroma", in_signature="yyyy")
+        def setReactive(self, red, green, blue, speed):
+            assert all(isinstance(v, dbus.Byte) for v in (red, green, blue, speed))
+            assert (red, green, blue, speed) == (68, 214, 44, 3)
+
+        @dbus.service.method("razer.device.misc")
+        def triggerReactive(self): pass
+
+        @dbus.service.method("razer.device.lighting.chroma", in_signature="ay", byte_arrays=True)
+        def setKeyRow(self, payload):
+            assert isinstance(payload, dbus.ByteArray)
+            self.frame = bytes(payload)
+            assert self.frame == bytes([0, 0, 16]) + bytes([68, 214, 44]) * 17
+
+        @dbus.service.method("razer.device.lighting.chroma")
+        def setCustom(self):
+            assert self.frame is not None, "Upload the frame before activating custom mode"
+
     manager = Manager(name, "/org/razer")
     mouse = Mouse(name, "/org/razer/device/WIRETEST")
+    mat = Mat(name, "/org/razer/device/MATWIRETEST")
     print("ready", flush=True)
     GLib.MainLoop().run()
 
@@ -104,6 +158,7 @@ def service():
 def client():
     from PyQt6.QtCore import QCoreApplication
     from naga import NagaController
+    from mousemat import MouseMatController
     if not os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
         raise RuntimeError("Run this test using dbus-run-session")
     app = QCoreApplication([])
@@ -123,7 +178,18 @@ def client():
                 assert mouse.set_value(field, value)["result"] == "daemon_readback_matched"
             mouse.set_lighting("logo", "static", (68, 214, 44))
             mouse.set_lighting("thumb", "spectrum", (0, 0, 0))
-        print("Real session-bus test passed: uint16 DPI/time, byte RGB/threshold, int32 polling, double brightness.")
+        with MouseMatController() as mat:
+            status = mat.status()
+            assert status["device"]["serial"] == "MATWIRETEST"
+            assert status["values"]["matrix_dimensions"] == [1, 17]
+            assert mat.set_brightness(40)["result"] == "daemon_readback_matched"
+            mat.set_effect("static", (68, 214, 44))
+            mat.set_effect("breathing_dual", (68, 214, 44), (145, 70, 255))
+            mat.set_effect("wave", direction=2)
+            mat.set_effect("reactive", (68, 214, 44), speed=3)
+            mat.trigger_reactive()
+            mat.set_custom([(68, 214, 44)] * 17)
+        print("Real session-bus test passed: mouse settings, mat RGB/effects/brightness, byte-array matrix frames.")
     finally:
         process.terminate()
         try:

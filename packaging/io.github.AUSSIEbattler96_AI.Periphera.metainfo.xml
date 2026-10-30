@@ -4,21 +4,22 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Periphera</name>
-  <summary>Control Barracuda X Chroma and Naga V2 Pro peripherals</summary>
+  <summary>Control Razer headset, mouse and RGB mouse-mat settings</summary>
   <developer id="io.github.aussiebattler96-ai">
     <name>Periphera contributors</name>
   </developer>
   <description>
     <p>An independent Linux controller with a charcoal and green interface for
-    the Razer Barracuda X Chroma headset and Razer Naga V2 Pro mouse.</p>
+    the Razer Barracuda X Chroma headset, Naga V2 Pro mouse and RGB mouse mats.</p>
     <ul>
       <li>Headset battery, equalizer, microphone monitoring and six-zone lighting</li>
       <li>Mouse DPI, polling rate, battery, sleep timeout and lighting through OpenRazer</li>
-      <li>Read-only mouse preview for exploring the interface without hardware</li>
+      <li>Eight Razer RGB mouse-mat models with brightness, effects and custom colours through OpenRazer</li>
+      <li>Read-only mouse and mouse-mat previews for exploring without hardware</li>
       <li>Explicit Apply actions and device response diagnostics</li>
     </ul>
-    <p>Mouse integration is experimental and needs testing by device owners.
-    Install OpenRazer on the host for mouse control. The headset needs a
+    <p>Mouse and mouse-mat integration is experimental and needs owner testing.
+    Install OpenRazer on the host for mouse and mouse-mat control. The headset needs a
     host udev permission rule. Bluetooth mouse configuration, button remapping,
     onboard profile management and HyperScroll tuning are not included.</p>
     <p>This is not an official Razer application or a complete Synapse replacement.</p>
@@ -30,6 +31,9 @@
   <content_rating type="oars-1.1"/>
   <supports><control>pointing</control><control>keyboard</control></supports>
   <releases>
+    <release version="0.4.0" date="2026-10-30" type="development">
+      <description><p>Add eight Razer RGB mouse mats with effects, custom colours and hardware-free previews.</p></description>
+    </release>
     <release version="0.3.0" date="2026-10-29" type="development">
       <description><p>Add experimental Naga V2 Pro controls and Flatpak packaging.</p></description>
     </release>

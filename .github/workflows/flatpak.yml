@@ -22,7 +22,7 @@ jobs:
       - name: Controller and GUI tests
         env:
           QT_QPA_PLATFORM: offscreen
-        run: /usr/bin/python3 -m unittest -v test_barracuda.py test_gui.py test_naga.py test_naga_gui.py
+        run: /usr/bin/python3 -m unittest discover -v
       - name: Real D-Bus wire test with a simulated service
         env:
           QT_QPA_PLATFORM: offscreen
@@ -46,14 +46,35 @@ jobs:
       - name: Smoke test the installed bundle
         run: |
           flatpak install --user --noninteractive dist/periphera.flatpak
-          flatpak run --env=QT_QPA_PLATFORM=offscreen --command=python3 io.github.AUSSIEbattler96_AI.Periphera -c 'import sys; sys.path.insert(0, "/app/lib/periphera"); from PyQt6.QtWidgets import QApplication; from PyQt6.QtDBus import QDBusMessage; from barracuda_gui import Window; app=QApplication([]); w=Window(autorefresh=False); w.show(); w.navigate("mouse"); w.mouse_page.preview.setChecked(True); app.processEvents(); assert not w.busy; w.close()'
+          flatpak run --env=QT_QPA_PLATFORM=offscreen --command=python3 io.github.AUSSIEbattler96_AI.Periphera - <<'PY'
+          import sys
+          sys.path.insert(0, "/app/lib/periphera")
+          from PyQt6.QtWidgets import QApplication
+          from PyQt6.QtDBus import QDBusMessage
+          from barracuda_gui import Window
+          from mousemat import MODELS
+          app = QApplication([])
+          window = Window(autorefresh=False)
+          window.show()
+          window.navigate("mouse")
+          window.mouse_page.preview.setChecked(True)
+          app.processEvents()
+          window.navigate("mousemat")
+          window.mat_page.preview.setChecked(True)
+          for pid in MODELS:
+              window.mat_page.preview_model.setCurrentIndex(window.mat_page.preview_model.findData(pid))
+              app.processEvents()
+              assert all(not b.isEnabled() for b in window.mat_page.apply_buttons.values())
+          assert not window.busy
+          window.close()
+          PY
       - name: Prepare release files
         run: |
           cp install-permissions.sh 70-barracuda-x-chroma.rules dist/
-          cp docs/HOST_SETUP.md dist/
+          cp docs/HOST_SETUP.md docs/MOUSE_MATS.md dist/
           git archive --format=zip --prefix=barracuda-linux/ HEAD -o dist/periphera-source.zip
           cd dist
-          sha256sum periphera.flatpak periphera-source.zip install-permissions.sh 70-barracuda-x-chroma.rules HOST_SETUP.md > SHA256SUMS
+          sha256sum periphera.flatpak periphera-source.zip install-permissions.sh 70-barracuda-x-chroma.rules HOST_SETUP.md MOUSE_MATS.md > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: periphera-linux-x86_64

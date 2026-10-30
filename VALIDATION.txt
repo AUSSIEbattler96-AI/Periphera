@@ -1,4 +1,38 @@
-Periphera 0.3.0 — validation updated 30 October 2026 (Australia/Melbourne)
+Periphera 0.4.0 — validation updated 30 October 2026 (Australia/Melbourne)
+
+Completed locally for the RGB mouse-mat update:
+- 100 automated tests passed: 24 headset backend, 12 existing GUI,
+  19 Naga/OpenRazer contract and transport conversion, 10 mouse GUI,
+  20 mouse-mat contract and 15 mouse-mat GUI tests.
+- All eight upstream mouse-mat USB IDs and model-specific preview layouts
+  covered. Unrelated devices and the HyperFlux mouse object are filtered out.
+- Preview cannot open transport or write. Multiple mats need explicit
+  selection; writes revalidate model, device type and capabilities.
+- Tested brightness readback failure, unavailable features, disconnects,
+  synchronization guards and complete custom frame validation/framing.
+- Byte arrays preserve binary NULs and use Qt's QByteArray D-Bus type.
+- Every GUI page and all eight hardware-free previews render offscreen.
+- Mat controls inspected at 1180x860 and the minimum 980x700 layout.
+- Python, Flatpak JSON, workflow YAML and embedded smoke script parse.
+- AppStream metadata passes appstreamcli validate --no-net.
+- The existing barracuda.py headset backend is byte-for-byte unchanged.
+
+CI checks for 0.4.0:
+- The workflow runs all 100 tests on Ubuntu and inside the Flatpak SDK.
+- The simulated real-session-bus test now covers mat brightness, RGB,
+  dual breathing, wave/reactive and custom byte-array frames as well as Naga.
+- The installed-bundle smoke check opens every mat preview with writes disabled.
+- Check the workflow run for this commit for CI/build results. The local
+  environment blocks D-Bus socket creation and cannot run this wire check
+  or a complete Flatpak build; no local success is claimed for those steps.
+
+Not yet hardware-validated for 0.4.0:
+- Physical behavior of any RGB mouse mat, including custom slot placement.
+- Physical Naga V2 Pro behavior or headset access inside the Flatpak.
+- Architectures other than x86_64.
+
+Historical validation for 0.3.0 follows.
+======================================================================
 
 Completed locally:
 - 65 automated tests passed: 24 headset backend, 12 existing GUI,

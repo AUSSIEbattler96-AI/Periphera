@@ -8,6 +8,7 @@ testing, not a claim of complete device support.
 | --- | --- | --- | --- |
 | Barracuda X Chroma `1532:0574` | Direct hidraw through 2.4 GHz dongle | Battery/status, EQ presets/curve, sidetone, sleep timeout, six-zone RGB and host-generated effects | Owner confirmed status, RGB, EQ preset changes and sidetone in the original backend. Custom EQ/sleep writes and effects still need owner testing. |
 | Naga V2 Pro `1532:00a7` / `1532:00a8` | Host OpenRazer session D-Bus, cable/original receiver | X/Y DPI, polling rate, battery, sleep seconds, low-battery threshold, logo/thumb-grid brightness and static/spectrum/breathing/off | Adapter and UI tested with simulated responses; no physical mouse test. |
+| Eight Razer RGB mouse mats; see [model list](MOUSE_MATS.md) | Host OpenRazer session D-Bus, USB | Brightness, available static/spectrum/breathing/wave/reactive/off effects, manual reactive triggering and custom matrix colours | Adapter/UI and wire-contract tests with simulated devices; physical mat testing outstanding. |
 
 The app does not configure the Naga Trinity or BlackWidow V4 X. They can
 remain connected; they are filtered out by the mouse adapter. Existing
@@ -30,10 +31,19 @@ headset behavior is preserved.
   HyperScroll feel/tension tuning, Bluetooth configuration, Mouse Dock Pro
   pairing, and firmware updates are not implemented here.
 
+## Mouse-mat behavior
+
+See [MOUSE_MATS.md](MOUSE_MATS.md) for USB IDs, variants, features and setup.
+Live capabilities and matrix dimensions come from OpenRazer. Single-colour
+Goliathus mats do not gain extra physical zones. Lighting synchronization
+must be off; unknown synchronization state also blocks writes. Reactive
+pulses are manual: automatic desktop mouse-click detection is not implemented.
+Custom frames use the public OpenRazer client's row/start/end format.
+
 ## Tests
 
 ```sh
-QT_QPA_PLATFORM=offscreen python3 -m unittest -v test_barracuda.py test_gui.py test_naga.py test_naga_gui.py
+QT_QPA_PLATFORM=offscreen python3 -m unittest discover -v
 QT_QPA_PLATFORM=offscreen python3 scripts/smoke_gui.py
 ```
 
@@ -47,11 +57,9 @@ QT_QPA_PLATFORM=offscreen dbus-run-session -- python3 scripts/test_dbus_wire.py
 It needs PyQt6.QtDBus, dbus-python, and PyGObject. The GUI needs only PyQt6;
 the Barracuda command-line backend still uses Python's standard library.
 
-The development environment used for this update blocks D-Bus socket creation
-and bubblewrap namespaces. Therefore the real D-Bus integration check and
-complete Flatpak build have **not run there**. GitHub Actions runs them before
-producing a release artifact. See the workflow run for its actual result;
-the existence of a manifest does not mean a bundle has built successfully.
+GitHub Actions also runs the integration check, builds the Flatpak and tests
+the installed app. See [VALIDATION.txt](../VALIDATION.txt) and the specific
+workflow run for results; a manifest alone does not prove a successful build.
 
 ## Owner testing
 
@@ -71,6 +79,7 @@ behavior. Remove serial numbers before publishing diagnostic output.
 - [Flatpak sandbox permissions](https://docs.flatpak.org/en/latest/sandbox-permissions.html)
 - [PyQt BaseApp 6.10](https://github.com/flathub/com.riverbankcomputing.PyQt.BaseApp/tree/branch/6.10)
 - [Original Barracuda protocol discussion](https://github.com/openrazer/openrazer/issues/2704)
+- [Mouse-mat device definitions and endpoints](MOUSE_MATS.md#validation)
 
 The mouse adapter is new application code using the public D-Bus interface;
 it does not bundle or fork OpenRazer's driver/daemon.
