@@ -152,6 +152,13 @@ def fingerprint(plan):
     return hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
 
 
+def readonly_state(returncode, output):
+    # SteamOS versions may use a nonzero status to indicate writable mode.
+    # Warnings or ambiguous output (for example with sysexts) remain unknown.
+    value = output.lower().strip()
+    return value if returncode in (0, 1) and value in ("enabled", "disabled") else "unknown"
+
+
 def checks_for(info):
     checks = []
     def add(label, state, detail):
@@ -202,7 +209,7 @@ def probe():
     readonly = "not-applicable"
     if steam:
         rc, output = command(["steamos-readonly", "status"])
-        readonly = output.lower().strip() if rc == 0 and output.lower().strip() in ("enabled", "disabled") else "unknown"
+        readonly = readonly_state(rc, output)
     _, daemon = command(["openrazer-daemon", "--version"])
     if not version_tuple(daemon):
         daemon = ""

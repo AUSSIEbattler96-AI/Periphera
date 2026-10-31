@@ -22,6 +22,13 @@ def host_info(**changes):
 
 
 class HostSetupTests(unittest.TestCase):
+    def test_readonly_status_accepts_writable_exit_status_and_rejects_ambiguity(self):
+        self.assertEqual(setup.readonly_state(0, "enabled\n"), "enabled")
+        self.assertEqual(setup.readonly_state(0, "disabled\n"), "disabled")
+        self.assertEqual(setup.readonly_state(1, "disabled\n"), "disabled")
+        self.assertEqual(setup.readonly_state(1, "permission denied"), "unknown")
+        self.assertEqual(setup.readonly_state(0, "enabled\nWarning: sysexts loaded"), "unknown")
+
     def test_steam_headers_are_derived_from_running_kernel_package(self):
         plan = setup.repair_plan(host_info(), "openrazer")
         self.assertIn("linux-neptune-616-headers", plan["packages"])
