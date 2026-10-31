@@ -1,5 +1,35 @@
 # Host setup
 
+## Guided setup in the testing build
+
+The `testing/hardware-setup` branch opens **Hardware setup** on launch and checks
+the real host's kernel, OpenRazer, permission group, device service and headset
+USB access. Checks are read-only. Choose the device type and **Install / repair**
+to review the plan and authenticate through the desktop's administrator prompt.
+
+Automatic OpenRazer installation supports Arch/CachyOS/SteamOS and Debian/Ubuntu
+when suitable packages are available in configured repositories. No repositories,
+signing keys or package-manager locks are changed. Kernel headers are matched to
+the running kernel; generic Arch headers are not substituted for SteamOS or
+CachyOS headers. Missing packages or headers stop repair with guidance.
+
+SteamOS is made writable only when driver packages must be installed, and its
+previous read-only state is restored after completion or a normal failure.
+Drivers may need repair after an OS update. New group membership requires a new
+desktop sign-in or reboot. After that, use **Start / restart device service**,
+then scan your mouse or mat. Reconnect the headset dongle after installing its
+rule. This does not establish that every hardware command works; device testing
+is still required.
+
+The testing app has a separate Flatpak ID, but installed host drivers, device
+groups and permission rules are shared with the regular app. The testing package
+allows `org.freedesktop.Flatpak` host execution so its setup helper can run outside
+the sandbox. The host helper is included in the app and passed directly to the
+system Python interpreter; it does not download and execute remote installer code.
+
+See [TESTING.md](TESTING.md) for the download and install steps. The manual setup
+below remains available for the regular 0.4.1 release.
+
 The Flatpak contains the GUI, Python bindings and application code. Device
 drivers and udev permission rules belong on the host Linux system.
 
@@ -88,3 +118,4 @@ This disables direct headset access. To restore the packaged permissions:
 ```sh
 flatpak override --user --reset io.github.AUSSIEbattler96_AI.Periphera
 ```
+

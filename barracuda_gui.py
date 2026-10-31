@@ -26,8 +26,9 @@ except ImportError as exc:
 
 from barracuda import Controller, PRESETS, color_value, diagnose, effect
 
-UI_VERSION = "0.4.1"
-APP_ID = "io.github.AUSSIEbattler96_AI.Periphera"
+UI_VERSION = "0.4.2-test.1"
+TESTING = os.environ.get("PERIPHERA_TESTING") == "1"
+APP_ID = "io.github.AUSSIEbattler96_AI.Periphera" + (".Testing" if TESTING else "")
 GREEN = "#44d62c"
 BG = "#0e1011"
 PANEL = "#191c1e"
@@ -262,7 +263,7 @@ class Window(QMainWindow):
         self.actions, self.nav, self.pages = [], {}, {}
         self.last_json = "{}"
         self.draft_preset = "music"
-        self.setWindowTitle("Periphera")
+        self.setWindowTitle("Periphera Testing" if TESTING else "Periphera")
         self.setWindowIcon(application_icon())
         self.resize(1180, 860)
         self.setMinimumSize(980, 700)
@@ -280,6 +281,9 @@ class Window(QMainWindow):
         from mousemat import MouseMatController
         self.mat_page = MouseMatPage(self, mat_factory or MouseMatController)
         self.pages["mousemat"][1].addWidget(self.mat_page)
+        from hardware_setup_gui import HardwareSetupPage
+        self.setup_page = HardwareSetupPage(self)
+        self.pages["setup"][1].addWidget(self.setup_page)
         self.navigate("overview")
         self.paint_status()
         self.paint_presets()
@@ -290,7 +294,8 @@ class Window(QMainWindow):
         self.refresh_shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
         self.refresh_shortcut.activated.connect(self.refresh_current)
         if autorefresh:
-            QTimer.singleShot(200, self.refresh)
+            self.navigate("setup")
+            QTimer.singleShot(200, self.setup_page.check)
 
     def action(self, title, callback, kind=""):
         w = button(title, callback, kind)
@@ -324,13 +329,16 @@ class Window(QMainWindow):
         nav.addSpacing(5)
         for name, title in (("overview", "Overview"), ("sound", "Sound"),
                             ("lighting", "Lighting"), ("diagnostics", "Diagnostics"),
-                            ("mouse", "Naga V2 Pro"), ("mousemat", "Mouse mats")):
+                            ("mouse", "Naga V2 Pro"), ("mousemat", "Mouse mats"),
+                            ("setup", "Hardware setup")):
             if name == "mouse":
                 nav.addSpacing(18)
                 nav.addWidget(text("MOUSE", 10, "#6d7c71", 600))
             elif name == "mousemat":
                 nav.addSpacing(12)
                 nav.addWidget(text("DESK", 10, "#6d7c71", 600))
+            elif name == "setup":
+                nav.addSpacing(12)
             w = button(title, lambda _=False, n=name: self.navigate(n), "nav", True)
             nav.addWidget(w)
             self.nav[name] = w
@@ -378,6 +386,7 @@ class Window(QMainWindow):
             "diagnostics": ("Diagnostics", "Connection details and the latest device response."),
             "mouse": ("Mouse control", "Performance, lighting and power. One place."),
             "mousemat": ("Mouse-mat lighting", "Your desk. Your colours."),
+            "setup": ("Hardware setup", "Get connected. Check again after Linux updates."),
         }
         for name, title in titles.items():
             page = QWidget()
@@ -680,12 +689,16 @@ class Window(QMainWindow):
         for key, b in self.nav.items():
             b.setChecked(key == name)
         self.device_category.setText("DEVICES  /  MOUSE MATS" if name == "mousemat" else
-                                     "DEVICES  /  MOUSE" if name == "mouse" else "DEVICES  /  AUDIO")
+                                     "DEVICES  /  MOUSE" if name == "mouse" else
+                                     "PERIPHERA  /  SETUP" if name == "setup" else "DEVICES  /  AUDIO")
         self.device_heading.setText("RAZER CHROMA RGB" if name == "mousemat" else
-                                    "NAGA V2 PRO" if name == "mouse" else "BARRACUDA X CHROMA")
-        self.connection.setVisible(name not in ("mouse", "mousemat"))
+                                    "NAGA V2 PRO" if name == "mouse" else
+                                    "LINUX HARDWARE SUPPORT" if name == "setup" else "BARRACUDA X CHROMA")
+        self.connection.setVisible(name not in ("mouse", "mousemat", "setup"))
 
     def refresh_current(self):
+        if self.current_page == "setup":
+            return self.setup_page.check()
         if self.current_page == "mouse":
             return self.mouse_page.refresh()
         if self.current_page == "mousemat":
@@ -773,6 +786,7 @@ class Window(QMainWindow):
         self.monitoring.setEnabled(False)
         self.mouse_page.update_enabled()
         self.mat_page.update_enabled()
+        self.setup_page.update_enabled()
         self.stop_button.setEnabled(is_effect)
         self.progress.setRange(0, 0)
         self.notify(title + "…")
@@ -814,6 +828,7 @@ class Window(QMainWindow):
                 failed()
         self.mouse_page.update_enabled()
         self.mat_page.update_enabled()
+        self.setup_page.update_enabled()
         if self.closing:
             self.close()
 
@@ -986,6 +1001,11 @@ class Window(QMainWindow):
                         is_effect=True)
 
     def closeEvent(self, event):
+        if self.setup_page.running:
+            self.closing = True
+            self.notify("Finishing hardware setup before closing. Leave any authentication prompt open until it completes.")
+            event.ignore()
+            return
         if self.busy:
             self.closing = True
             self.stop.set()
@@ -1001,7 +1021,7 @@ def launch(device=None):
             os.environ.get("QT_QPA_PLATFORM") in ("offscreen", "minimal")):
         raise RuntimeError("Open the GUI from your graphical desktop session.")
     app = QApplication.instance() or QApplication([sys.argv[0]])
-    app.setApplicationName("periphera")
+    app.setApplicationName("periphera-testing" if TESTING else "periphera")
     app.setApplicationVersion(UI_VERSION)
     app.setDesktopFileName(APP_ID)
     app.setWindowIcon(application_icon())
@@ -1020,4 +1040,5 @@ def launch(device=None):
     window = Window(device)
     window.show()
     app.exec()
+
 

@@ -1,9 +1,8 @@
-name: Test and build Flatpak
+name: Build testing Flatpak
 
 on:
   push:
-    branches: [main]
-    tags: ['v*']
+    branches: ['testing/**']
   pull_request:
   workflow_dispatch:
 
@@ -11,21 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  release_request:
-    runs-on: ubuntu-24.04
-    outputs:
-      enabled: ${{ steps.request.outputs.enabled }}
-      tag: ${{ steps.request.outputs.tag }}
-      publish: ${{ steps.request.outputs.publish }}
-      prerelease: ${{ steps.request.outputs.prerelease }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      - name: Resolve explicit release request
-        id: request
-        run: python3 scripts/release_request.py
-
   tests:
     runs-on: ubuntu-24.04
     steps:
@@ -46,6 +30,9 @@ jobs:
         run: |
           desktop-file-validate packaging/io.github.AUSSIEbattler96_AI.Periphera.desktop
           appstreamcli validate --no-net packaging/io.github.AUSSIEbattler96_AI.Periphera.metainfo.xml
+          python3 scripts/prepare_testing.py
+          desktop-file-validate packaging/io.github.AUSSIEbattler96_AI.Periphera.Testing.desktop
+          appstreamcli validate --no-net packaging/io.github.AUSSIEbattler96_AI.Periphera.Testing.metainfo.xml
 
   flatpak:
     needs: tests
@@ -57,11 +44,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
       - name: Build bundle and run tests inside the SDK
+        env:
+          PERIPHERA_BUILD_CHANNEL: testing
         run: bash scripts/build-flatpak.sh
       - name: Smoke test the installed bundle
         run: |
-          flatpak install --user --noninteractive dist/periphera.flatpak
-          flatpak run --env=QT_QPA_PLATFORM=offscreen --command=python3 io.github.AUSSIEbattler96_AI.Periphera - <<'PY'
+          flatpak install --user --noninteractive dist/periphera-testing.flatpak
+          flatpak run --env=QT_QPA_PLATFORM=offscreen --env=PERIPHERA_TESTING=1 --command=python3 io.github.AUSSIEbattler96_AI.Periphera.Testing - <<'PY'
           import sys
           sys.path.insert(0, "/app/lib/periphera")
           from PyQt6.QtWidgets import QApplication
@@ -71,6 +60,10 @@ jobs:
           app = QApplication([])
           window = Window(autorefresh=False)
           window.show()
+          assert window.windowTitle() == "Periphera Testing"
+          assert not window.setup_page.install_button.isEnabled()
+          window.navigate("setup")
+          app.processEvents()
           window.navigate("mouse")
           window.mouse_page.preview.setChecked(True)
           app.processEvents()
@@ -83,50 +76,18 @@ jobs:
           assert not window.busy
           window.close()
           PY
-      - name: Prepare release files
+      - name: Prepare testing downloads
         run: |
           cp install-permissions.sh 70-barracuda-x-chroma.rules dist/
           cp docs/HOST_SETUP.md docs/MOUSE_MATS.md dist/
+          cp docs/TESTING.md hardware_setup.py dist/
           git archive --format=zip --prefix=barracuda-linux/ HEAD -o dist/periphera-source.zip
           cd dist
-          sha256sum periphera.flatpak periphera-source.zip install-permissions.sh 70-barracuda-x-chroma.rules HOST_SETUP.md MOUSE_MATS.md > SHA256SUMS
+          sha256sum periphera-testing.flatpak periphera-source.zip install-permissions.sh 70-barracuda-x-chroma.rules HOST_SETUP.md MOUSE_MATS.md TESTING.md hardware_setup.py > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: periphera-linux-x86_64
+          name: periphera-testing-linux-x86_64
           path: dist/*
           if-no-files-found: error
+          retention-days: 30
 
-  release:
-    if: needs.release_request.outputs.enabled == 'true'
-    needs: [flatpak, release_request]
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: periphera-linux-x86_64
-          path: dist
-      - name: Verify release downloads
-        run: |
-          cd dist
-          sha256sum -c SHA256SUMS
-      - name: Create the requested release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.release_request.outputs.tag }}
-          PUBLISH: ${{ needs.release_request.outputs.publish }}
-          PRERELEASE: ${{ needs.release_request.outputs.prerelease }}
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          notes = Path("docs/RELEASE_NOTES.md").read_text().split("\n## Previous release:", 1)[0]
-          Path("release-notes.md").write_text(notes)
-          PY
-          flags=(--target "$GITHUB_SHA" --title "Periphera $RELEASE_TAG" --notes-file release-notes.md)
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then flags+=(--verify-tag); fi
-          if [[ "$PUBLISH" != true ]]; then flags+=(--draft); fi
-          if [[ "$PRERELEASE" == true ]]; then flags+=(--prerelease --latest=false); fi
-          gh release create "$RELEASE_TAG" dist/* "${flags[@]}"

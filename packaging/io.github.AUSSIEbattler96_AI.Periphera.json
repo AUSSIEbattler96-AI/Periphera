@@ -23,7 +23,7 @@
       "name": "periphera",
       "buildsystem": "simple",
       "build-commands": [
-        "install -Dm644 barracuda.py barracuda_gui.py naga.py naga_gui.py mousemat.py mousemat_gui.py -t /app/lib/periphera/",
+        "install -Dm644 barracuda.py barracuda_gui.py naga.py naga_gui.py mousemat.py mousemat_gui.py hardware_setup.py hardware_setup_gui.py -t /app/lib/periphera/",
         "install -Dm755 packaging/periphera /app/bin/periphera",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.desktop -t /app/share/applications/",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.metainfo.xml -t /app/share/metainfo/",
@@ -46,3 +46,4 @@
     }
   ]
 }
+

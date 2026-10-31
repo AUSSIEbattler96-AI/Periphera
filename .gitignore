@@ -7,3 +7,6 @@ repo/
 dist/
 *.flatpak
 *.log
+
+packaging/*Periphera.Testing.*
+packaging/periphera-testing

@@ -1,3 +1,8 @@
+> **Hardware setup testing branch — 0.4.2-test.1.**
+> Install the separate **Periphera Testing** app from this branch's GitHub Actions
+> artifact. It can coexist with 0.4.1. See [Testing instructions](docs/TESTING.md).
+> This branch publishes build artifacts only; it does not publish GitHub Releases.
+
 <p align="center">
   <img src="previews/periphera-venom-transparent.png" alt="Periphera — Venom green Cthulhu devouring a ship and serpent" width="1000">
 </p>
@@ -235,3 +240,4 @@ PyQt6 used by this package. OpenRazer is a separate host dependency.
 
 Razer, Barracuda, Naga, Firefly, Goliathus, Strider and Chroma are trademarks of their respective owner.
 Periphera is not affiliated with or endorsed by Razer.
+
