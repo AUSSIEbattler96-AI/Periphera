@@ -23,17 +23,17 @@
       "name": "periphera",
       "buildsystem": "simple",
       "build-commands": [
-        "install -Dm644 barracuda.py barracuda_gui.py naga.py naga_gui.py mousemat.py mousemat_gui.py hardware_setup.py hardware_setup_gui.py -t /app/lib/periphera/",
+        "install -Dm644 barracuda.py barracuda_gui.py naga.py naga_gui.py mousemat.py mousemat_gui.py hardware_setup.py hardware_setup_gui.py blackwidow.py blackwidow_gui.py keyboard_macros.py -t /app/lib/periphera/",
         "install -Dm755 packaging/periphera /app/bin/periphera",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.desktop -t /app/share/applications/",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.metainfo.xml -t /app/share/metainfo/",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.png /app/share/icons/hicolor/512x512/apps/io.github.AUSSIEbattler96_AI.Periphera.png",
         "install -Dm644 packaging/io.github.AUSSIEbattler96_AI.Periphera.png /app/lib/periphera/io.github.AUSSIEbattler96_AI.Periphera.png",
-        "install -Dm644 LICENSE README.md docs/HOST_SETUP.md docs/SUPPORT.md docs/MOUSE_MATS.md -t /app/share/doc/periphera/"
+        "install -Dm644 LICENSE README.md docs/HOST_SETUP.md docs/SUPPORT.md docs/MOUSE_MATS.md docs/BLACKWIDOW.md -t /app/share/doc/periphera/"
       ],
       "run-tests": true,
       "test-commands": [
-        "QT_QPA_PLATFORM=offscreen python3 -m unittest discover -v",
+        "PERIPHERA_REQUIRE_SOCKET_TEST=1 QT_QPA_PLATFORM=offscreen python3 -m unittest discover -v",
         "QT_QPA_PLATFORM=offscreen python3 scripts/smoke_gui.py"
       ],
       "sources": [

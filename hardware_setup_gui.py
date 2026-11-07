@@ -57,9 +57,10 @@ class HardwareSetupPage(QWidget):
         panel, box = card()
         box.addWidget(text("INSTALL OR REPAIR SUPPORT", 11, MUTED, 600))
         self.target = QComboBox()
-        self.target.addItem("Mouse and mouse mats", "openrazer")
+        self.target.addItem("OpenRazer RGB (keyboards, mice, mats)", "openrazer")
+        self.target.addItem("BlackWidow keyboard + macros", "keyboard")
         self.target.addItem("Barracuda headset", "headset")
-        self.target.addItem("Headset, mouse and mats", "all")
+        self.target.addItem("All devices + keyboard macros", "all")
         self.target.currentIndexChanged.connect(self.update_enabled)
         box.addWidget(self.target)
         self.plan_note = text("Run the checks to see which setup actions are available.", 12, MUTED, wrap=True)
@@ -143,6 +144,8 @@ class HardwareSetupPage(QWidget):
                       "Set up your account's device access and load the drivers."]
         if plan["headset_rule"]:
             lines += ["Install the headset's USB permission rule; reconnect the dongle afterwards."]
+        if plan.get("uinput_rule"):
+            lines += ["Allow the active local desktop user to create virtual keyboard input for Wayland/X11 macros and load uinput at boot."]
         if plan["packages"] and plan["steam_readonly"] == "enabled":
             lines += ["", "SteamOS will be made writable during installation and returned to read-only mode afterwards."]
         lines += ["", "You may need to sign out and back in, or reboot. This support is shared with your other apps."]
@@ -171,6 +174,7 @@ class HardwareSetupPage(QWidget):
         self.host.monitoring.setEnabled(False)
         self.host.mouse_page.update_enabled()
         self.host.mat_page.update_enabled()
+        self.host.keyboard_page.update_enabled()
         self.host.progress.setRange(0, 0)
         self.update_enabled()
         self.append_log("Checking Linux setup…" if mode == "probe" else
@@ -214,6 +218,7 @@ class HardwareSetupPage(QWidget):
         self.host.monitoring.setEnabled(True)
         self.host.mouse_page.update_enabled()
         self.host.mat_page.update_enabled()
+        self.host.keyboard_page.update_enabled()
         success = False
         try:
             result = decode_result(self.output_text)

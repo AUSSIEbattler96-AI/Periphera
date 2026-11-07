@@ -22,6 +22,26 @@ def host_info(**changes):
 
 
 class HostSetupTests(unittest.TestCase):
+    def test_keyboard_plan_enables_uinput_while_rgb_only_support_does_not(self):
+        info = host_info()
+        keyboard = setup.repair_plan(info, "keyboard")
+        self.assertTrue(keyboard["uinput_rule"])
+        self.assertFalse(keyboard["headset_rule"])
+        self.assertIn("openrazer-driver-dkms", keyboard["packages"])
+        self.assertFalse(setup.repair_plan(info, "openrazer")["uinput_rule"])
+
+    def test_keyboard_repair_installs_rules_and_loads_keyboard_and_virtual_input(self):
+        info = host_info(steam=False, headers_match=True)
+        self.privileged_context(info)
+        with patch.object(setup, "preflight"), patch.object(setup, "matching_headers", return_value=True), \
+             patch.object(setup, "command", return_value=(0, "")), \
+             patch.object(setup, "run_change") as changes, patch.object(setup, "install_text") as install:
+            setup.apply_plan("keyboard", setup.fingerprint(setup.repair_plan(info, "keyboard")))
+        self.assertIn(call(["modprobe", "razerkbd"]), changes.call_args_list)
+        self.assertIn(call(["modprobe", "uinput"]), changes.call_args_list)
+        self.assertIn(call(Path("/etc/udev/rules.d") / setup.UINPUT_RULE_NAME, setup.UINPUT_RULE), install.call_args_list)
+        self.assertIn(call(Path("/etc/modules-load.d/periphera-uinput.conf"), "uinput\n"), install.call_args_list)
+
     def test_readonly_status_accepts_writable_exit_status_and_rejects_ambiguity(self):
         self.assertEqual(setup.readonly_state(0, "enabled\n"), "enabled")
         self.assertEqual(setup.readonly_state(0, "disabled\n"), "disabled")

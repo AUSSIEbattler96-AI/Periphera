@@ -10,9 +10,10 @@ testing, not a claim of complete device support.
 | Naga V2 Pro `1532:00a7` / `1532:00a8` | Host OpenRazer session D-Bus, cable/original receiver | X/Y DPI, polling rate, battery, sleep seconds, low-battery threshold, logo/thumb-grid brightness and static/spectrum/breathing/off | Adapter and UI tested with simulated responses; no physical mouse test. |
 | Eight Razer RGB mouse mats; see [model list](MOUSE_MATS.md) | Host OpenRazer session D-Bus, USB | Brightness, available static/spectrum/breathing/wave/reactive/off effects, manual reactive triggering and custom matrix colours | Adapter/UI and wire-contract tests with simulated devices; physical mat testing outstanding. |
 
-The app does not configure the Naga Trinity or BlackWidow V4 X. They can
-remain connected; they are filtered out by the mouse adapter. Existing
-headset behavior is preserved.
+The testing build adds BlackWidow V4 X (`1532:0293`) RGB + macros and
+BlackWidow V3 (`1532:024e`) RGB. See [BLACKWIDOW.md](BLACKWIDOW.md) for
+setup, validation and limits. The mouse adapter continues to ignore keyboards
+and the Naga Trinity. Existing headset behavior is preserved.
 
 ## Mouse behavior
 

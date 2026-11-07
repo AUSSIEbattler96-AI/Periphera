@@ -1,7 +1,9 @@
-> **Hardware setup testing branch — 0.4.2-test.1.**
-> Install the separate **Periphera Testing** app from this branch's GitHub Actions
-> artifact. It can coexist with 0.4.1. See [Testing instructions](docs/TESTING.md).
-> This branch publishes build artifacts only; it does not publish GitHub Releases.
+> **BlackWidow testing branch — 0.4.2-test.2.**
+> Adds **BlackWidow V4 X RGB + M1–M6 macros** and **BlackWidow V3 RGB**.
+> [Download the testing Flatpak](https://github.com/AUSSIEbattler96-AI/Periphera/releases/tag/v0.4.2-test.2).
+> **Periphera Testing** can coexist with 0.4.1. See the [keyboard guide](docs/BLACKWIDOW.md)
+> and [testing instructions](docs/TESTING.md). This branch publishes an explicitly
+> requested prerelease; `main` and the regular app are unchanged.
 
 <p align="center">
   <img src="previews/periphera-venom-transparent.png" alt="Periphera — Venom green Cthulhu devouring a ship and serpent" width="1000">
@@ -36,17 +38,17 @@ mouse and **eight Razer RGB mouse-mat models** into one Linux desktop app:
 sound, lighting, performance and power settings, with explicit Apply actions
 and hardware-free mouse and mouse-mat previews.
 
-**Version: 0.4.1 · Experimental prerelease.** Mouse-mat support is included
-in this version; install the matching bundle from GitHub Releases.
-
-The Flatpak launcher, application window and sidebar now use the transparent
-Venom kraken emblem. Device controls and host setup are unchanged from 0.4.0.
+**Version: 0.4.2-test.2 · Testing prerelease.** Includes the guided hardware setup
+from the existing testing branch plus a dedicated **BlackWidow** page. Keyboard
+macros use native Linux virtual input for Wayland and X11; see the keyboard guide
+for setup, saved bindings and current limits.
 
 | Device | Connection and backend | Validation |
 | --- | --- | --- |
 | **Barracuda X Chroma** | 2.4 GHz dongle · direct HID | Owner-confirmed status, RGB, EQ preset switching and sidetone |
 | **Naga V2 Pro** | USB cable or original receiver · host OpenRazer daemon | Experimental adapter; simulated tests only, physical hardware testing outstanding |
 | **Mouse mats** | USB · host OpenRazer daemon | All eight upstream-supported models; simulated tests only, physical owner testing outstanding |
+| **BlackWidow V4 X / V3** | USB · host OpenRazer daemon | Brightness, effects and per-key RGB on both; V4 X M1–M6 macros. Simulated tests; physical owner testing outstanding. |
 
 > This is an independent project, not an official Razer application or full
 > Synapse compatibility. Preview values are examples, not live device readings.

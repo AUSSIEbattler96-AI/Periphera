@@ -26,7 +26,7 @@ except ImportError as exc:
 
 from barracuda import Controller, PRESETS, color_value, diagnose, effect
 
-UI_VERSION = "0.4.2-test.1"
+UI_VERSION = "0.4.2-test.2"
 TESTING = os.environ.get("PERIPHERA_TESTING") == "1"
 APP_ID = "io.github.AUSSIEbattler96_AI.Periphera" + (".Testing" if TESTING else "")
 GREEN = "#44d62c"
@@ -252,7 +252,7 @@ class HeadsetArt(QWidget):
 
 class Window(QMainWindow):
     def __init__(self, device=None, controller_factory=Controller, autorefresh=True, mouse_factory=None,
-                 mat_factory=None):
+                 mat_factory=None, keyboard_factory=None):
         super().__init__()
         self.device, self.factory = device, controller_factory
         self.bus = queue.Queue()
@@ -281,6 +281,10 @@ class Window(QMainWindow):
         from mousemat import MouseMatController
         self.mat_page = MouseMatPage(self, mat_factory or MouseMatController)
         self.pages["mousemat"][1].addWidget(self.mat_page)
+        from blackwidow_gui import BlackWidowPage
+        from blackwidow import BlackWidowController
+        self.keyboard_page = BlackWidowPage(self, keyboard_factory or BlackWidowController)
+        self.pages["keyboard"][1].addWidget(self.keyboard_page)
         from hardware_setup_gui import HardwareSetupPage
         self.setup_page = HardwareSetupPage(self)
         self.pages["setup"][1].addWidget(self.setup_page)
@@ -330,7 +334,7 @@ class Window(QMainWindow):
         for name, title in (("overview", "Overview"), ("sound", "Sound"),
                             ("lighting", "Lighting"), ("diagnostics", "Diagnostics"),
                             ("mouse", "Naga V2 Pro"), ("mousemat", "Mouse mats"),
-                            ("setup", "Hardware setup")):
+                            ("keyboard", "BlackWidow"), ("setup", "Hardware setup")):
             if name == "mouse":
                 nav.addSpacing(18)
                 nav.addWidget(text("MOUSE", 10, "#6d7c71", 600))
@@ -346,7 +350,7 @@ class Window(QMainWindow):
         nav.addWidget(text("UNOFFICIAL CONTROLLER", 9, "#718076", 600))
         nav.addSpacing(3)
         nav.addWidget(text("Linux  /  UI " + UI_VERSION, 11, MUTED))
-        nav.addWidget(text("Headset · mouse · mats", 10, "#718076"))
+        nav.addWidget(text("Audio · mouse · keyboard", 10, "#718076"))
         nav.addSpacing(6)
 
         main = QWidget()
@@ -386,6 +390,7 @@ class Window(QMainWindow):
             "diagnostics": ("Diagnostics", "Connection details and the latest device response."),
             "mouse": ("Mouse control", "Performance, lighting and power. One place."),
             "mousemat": ("Mouse-mat lighting", "Your desk. Your colours."),
+            "keyboard": ("BlackWidow keyboards", "Every key. Every colour. Your shortcuts."),
             "setup": ("Hardware setup", "Get connected. Check again after Linux updates."),
         }
         for name, title in titles.items():
@@ -689,14 +694,18 @@ class Window(QMainWindow):
         for key, b in self.nav.items():
             b.setChecked(key == name)
         self.device_category.setText("DEVICES  /  MOUSE MATS" if name == "mousemat" else
+                                     "DEVICES  /  KEYBOARD" if name == "keyboard" else
                                      "DEVICES  /  MOUSE" if name == "mouse" else
                                      "PERIPHERA  /  SETUP" if name == "setup" else "DEVICES  /  AUDIO")
         self.device_heading.setText("RAZER CHROMA RGB" if name == "mousemat" else
+                                    "BLACKWIDOW V4 X / V3" if name == "keyboard" else
                                     "NAGA V2 PRO" if name == "mouse" else
                                     "LINUX HARDWARE SUPPORT" if name == "setup" else "BARRACUDA X CHROMA")
-        self.connection.setVisible(name not in ("mouse", "mousemat", "setup"))
+        self.connection.setVisible(name not in ("mouse", "mousemat", "keyboard", "setup"))
 
     def refresh_current(self):
+        if self.current_page == "keyboard":
+            return self.keyboard_page.refresh()
         if self.current_page == "setup":
             return self.setup_page.check()
         if self.current_page == "mouse":
@@ -786,6 +795,7 @@ class Window(QMainWindow):
         self.monitoring.setEnabled(False)
         self.mouse_page.update_enabled()
         self.mat_page.update_enabled()
+        self.keyboard_page.update_enabled()
         self.setup_page.update_enabled()
         self.stop_button.setEnabled(is_effect)
         self.progress.setRange(0, 0)
@@ -828,6 +838,7 @@ class Window(QMainWindow):
                 failed()
         self.mouse_page.update_enabled()
         self.mat_page.update_enabled()
+        self.keyboard_page.update_enabled()
         self.setup_page.update_enabled()
         if self.closing:
             self.close()

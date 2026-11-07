@@ -31,5 +31,15 @@ for pid in MODELS:
     app.processEvents()
     assert all(not b.isEnabled() for b in window.mat_page.apply_buttons.values())
 assert not window.busy
+from blackwidow import MODELS as KEYBOARDS
+window.navigate("keyboard")
+window.keyboard_page.preview.setChecked(True)
+for pid in KEYBOARDS:
+    window.keyboard_page.preview_model.setCurrentIndex(window.keyboard_page.preview_model.findData(pid))
+    for panel in range(3):
+        if window.keyboard_page.tabs.isTabVisible(panel):
+            window.keyboard_page.tabs.setCurrentIndex(panel)
+            app.processEvents()
+    assert all(not b.isEnabled() for b in window.keyboard_page.apply_buttons.values())
 window.close()
 print("All pages and eight mouse-mat previews rendered; preview commands disabled; QtDBus imported.")

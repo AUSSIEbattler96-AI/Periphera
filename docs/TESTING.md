@@ -1,18 +1,16 @@
-# Periphera hardware setup test
+# Periphera BlackWidow test
 
-Version: **0.4.2-test.1**. Branch: **testing/hardware-setup**.
+Version: **0.4.2-test.2**. Branch: **testing/blackwidow-v4x-v3**.
 
 This build starts from the restored 0.4.1 device backends. It adds guided Linux
-hardware setup; it does not restore the withdrawn generic 0.5.0 integration.
+hardware setup and adds dedicated BlackWidow V4 X/V3 controls. It does not
+restore the withdrawn generic 0.5.0 integration. See [BLACKWIDOW.md](BLACKWIDOW.md).
 
 ## Download from GitHub
 
-1. Open the repository's **Actions** tab.
-2. Select **Build testing Flatpak**, then the successful run for
-   `testing/hardware-setup`.
-3. Download **periphera-testing-linux-x86_64** under **Artifacts**. You must be
-   signed in to GitHub with repository read access.
-4. Extract the ZIP and open `periphera-testing.flatpak` in Discover, or run:
+Download `periphera-testing.flatpak` from the
+[testing prerelease](https://github.com/AUSSIEbattler96-AI/Periphera/releases/tag/v0.4.2-test.2)
+and open it in Discover, or run:
 
 ```sh
 flatpak install --user ./periphera-testing.flatpak
@@ -23,17 +21,19 @@ The desktop launcher is **Periphera Testing**, with a separate Flatpak ID and
 testing branch. Installing it does not replace the regular 0.4.1 Flatpak.
 The first install may download the shared KDE runtime automatically.
 
-This workflow has read-only repository permissions, no release job and no tag
-trigger. Pushes to `testing/**` build artifacts without updating `main`, tags,
-the latest release or the normal release downloads. Artifacts are retained for
-30 days; a new push produces a new downloadable build. There is no automatic
-update feed for this testing bundle.
+Pushes to `testing/**` build artifacts. A changed, explicit
+`.github/testing-release.json` request can publish a version-matched testing
+prerelease from its named branch only, after tests and Flatpak verification.
+The release is marked prerelease and never replaces the latest stable release.
+It does not update `main` or the normal release downloads. Actions artifacts
+are retained for 30 days. There is no automatic update feed for this bundle.
 
 ## Try the setup flow
 
 1. Launch **Periphera Testing**. Its opening setup check reads the real host's
    kernel, OpenRazer version, driver, permission group and service status.
-2. Choose **Mouse and mouse mats**, **Barracuda headset**, or both.
+2. Choose **Mouse and mouse mats**, **BlackWidow keyboard + macros**,
+   **Barracuda headset**, or all devices.
 3. Click **Install / repair**. Review the package and permission changes and
    approve the desktop's administrator prompt when you want to install them.
 4. Follow the displayed reconnect or sign-out instructions. Group membership

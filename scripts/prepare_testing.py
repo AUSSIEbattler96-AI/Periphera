@@ -26,7 +26,6 @@ def prepare(root):
     metadata = (packaging / (STABLE_ID + ".metainfo.xml")).read_text().replace(STABLE_ID, TEST_ID)
     metadata = metadata.replace("<name>Periphera</name>", "<name>Periphera Testing</name>")
     metadata = metadata.replace("<binary>periphera</binary>", "<binary>periphera-testing</binary>")
-    metadata = metadata.replace('version="0.4.1"', 'version="0.4.2-test.1"')
     (packaging / (TEST_ID + ".metainfo.xml")).write_text(metadata)
     (packaging / (TEST_ID + ".png")).write_bytes((packaging / (STABLE_ID + ".png")).read_bytes())
     (packaging / "periphera-testing").write_text(

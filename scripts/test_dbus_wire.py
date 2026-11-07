@@ -5,6 +5,7 @@ for the client. This deliberately fails if the private message bus cannot run.
 """
 from pathlib import Path
 import os
+import json
 import select
 import subprocess
 import sys
@@ -23,7 +24,7 @@ def service():
 
     class Manager(dbus.service.Object):
         @dbus.service.method("razer.devices", out_signature="as")
-        def getDevices(self): return ["WIRETEST", "MATWIRETEST"]
+        def getDevices(self): return ["WIRETEST", "MATWIRETEST", "KEYWIRETEST"]
 
         @dbus.service.method("razer.daemon", out_signature="s")
         def version(self): return "3.12.4-simulated"
@@ -148,9 +149,69 @@ def service():
         def setCustom(self):
             assert self.frame is not None, "Upload the frame before activating custom mode"
 
+    class Keyboard(dbus.service.Object):
+        brightness, frame = 75.0, None
+        macros = {}
+
+        @dbus.service.method("razer.device.misc", out_signature="ai")
+        def getVidPid(self): return [0x1532, 0x0293]
+
+        @dbus.service.method("razer.device.misc", out_signature="s")
+        def getDeviceType(self): return "keyboard"
+
+        @dbus.service.method("razer.device.misc", out_signature="ai")
+        def getMatrixDimensions(self): return [6, 22]
+
+        @dbus.service.method("razer.device.lighting.brightness", out_signature="d")
+        def getBrightness(self): return self.brightness
+
+        @dbus.service.method("razer.device.lighting.brightness", in_signature="d")
+        def setBrightness(self, value):
+            assert isinstance(value, dbus.Double)
+            self.brightness = value
+
+        @dbus.service.method("razer.device.lighting.chroma", in_signature="yyyyyyy")
+        def setStarlightDual(self, r, g, b, r2, g2, b2, speed):
+            assert all(isinstance(v, dbus.Byte) for v in (r, g, b, r2, g2, b2, speed))
+            assert (r, g, b, r2, g2, b2, speed) == (68, 214, 44, 145, 70, 255, 3)
+
+        @dbus.service.method("razer.device.lighting.custom", in_signature="yyyd")
+        def setRipple(self, r, g, b, refresh):
+            assert all(isinstance(v, dbus.Byte) for v in (r, g, b))
+            assert isinstance(refresh, dbus.Double) and refresh == 0.05
+
+        @dbus.service.method("razer.device.lighting.chroma", in_signature="ay", byte_arrays=True)
+        def setKeyRow(self, payload):
+            assert isinstance(payload, dbus.ByteArray)
+            self.frame = bytes(payload)
+            expected = b"".join(bytes([r, 0, 21]) + bytes([68, 214, 44]) * 22 for r in range(6))
+            assert self.frame == expected
+
+        @dbus.service.method("razer.device.lighting.chroma")
+        def setCustom(self):
+            assert self.frame is not None
+
+        @dbus.service.method("razer.device.macro", out_signature="s")
+        def getMacros(self): return json.dumps(self.macros)
+
+        @dbus.service.method("razer.device.macro", in_signature="ss")
+        def addMacro(self, key, payload):
+            assert isinstance(key, dbus.String) and isinstance(payload, dbus.String)
+            from keyboard_macros import decode_macro
+            value = json.loads(payload)
+            assert decode_macro(value) is not None
+            value[0]["args"] = ""
+            self.macros[str(key)] = value
+
+        @dbus.service.method("razer.device.macro", in_signature="s")
+        def deleteMacro(self, key):
+            assert isinstance(key, dbus.String)
+            self.macros.pop(str(key), None)
+
     manager = Manager(name, "/org/razer")
     mouse = Mouse(name, "/org/razer/device/WIRETEST")
     mat = Mat(name, "/org/razer/device/MATWIRETEST")
+    keyboard = Keyboard(name, "/org/razer/device/KEYWIRETEST")
     print("ready", flush=True)
     GLib.MainLoop().run()
 
@@ -159,6 +220,8 @@ def client():
     from PyQt6.QtCore import QCoreApplication
     from naga import NagaController
     from mousemat import MouseMatController
+    from blackwidow import BlackWidowController
+    from keyboard_macros import shortcut_events
     if not os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
         raise RuntimeError("Run this test using dbus-run-session")
     app = QCoreApplication([])
@@ -189,7 +252,17 @@ def client():
             mat.set_effect("reactive", (68, 214, 44), speed=3)
             mat.trigger_reactive()
             mat.set_custom([(68, 214, 44)] * 17)
-        print("Real session-bus test passed: mouse settings, mat RGB/effects/brightness, byte-array matrix frames.")
+        with BlackWidowController(macro_checker=lambda: None) as keyboard:
+            status = keyboard.status()
+            assert status["device"]["serial"] == "KEYWIRETEST"
+            assert status["values"]["matrix_dimensions"] == [6, 22]
+            assert keyboard.set_brightness(40)["result"] == "daemon_readback_matched"
+            keyboard.set_effect("starlight_dual", (68, 214, 44), (145, 70, 255), speed=3)
+            keyboard.set_effect("ripple", (68, 214, 44))
+            keyboard.set_custom([[[68, 214, 44]] * 22 for _ in range(6)])
+            assert keyboard.set_macro("M6", shortcut_events("CTRL+C"))["result"] == "daemon_readback_matched"
+            assert keyboard.delete_macro("M6")["result"] == "daemon_readback_matched"
+        print("Real session-bus test passed: mouse, mat and keyboard RGB, binary matrix frames, ripple and macro JSON.")
     finally:
         process.terminate()
         try:

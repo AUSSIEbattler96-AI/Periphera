@@ -25,7 +25,11 @@ HEADSET_RULE = ('# Periphera: access for the active local desktop user.\n'
                 'ACTION=="add|change", SUBSYSTEM=="hidraw", KERNEL=="hidraw*", '
                 'SUBSYSTEMS=="usb", ATTRS{idVendor}=="1532", '
                 'ATTRS{idProduct}=="0574", TAG+="uaccess"\n')
-TARGETS = ("headset", "openrazer", "all")
+UINPUT_RULE_NAME = "70-periphera-uinput.rules"
+UINPUT_RULE = ('# Periphera: virtual keyboard playback for the active local desktop user.\n'
+               'ACTION=="add|change", SUBSYSTEM=="misc", KERNEL=="uinput", '
+               'TAG+="uaccess", OPTIONS+="static_node=uinput"\n')
+TARGETS = ("headset", "openrazer", "keyboard", "all")
 
 
 class SetupError(RuntimeError):
@@ -123,10 +127,11 @@ def repair_plan(info, target):
     plan = {"target": target, "kernel": info["kernel"], "os_id": info["os_id"],
             "manager": info["manager"], "packages": [], "blocked": "",
             "headset_rule": target in ("headset", "all"),
+            "uinput_rule": target in ("keyboard", "all"),
             "steam_readonly": info["steam_readonly"]}
     if not info["pkexec"] or not info["udevadm"]:
         plan["blocked"] = "Host polkit (pkexec) and udev tools are required for guided repair."
-    if target in ("openrazer", "all"):
+    if target in ("openrazer", "keyboard", "all"):
         if not re.fullmatch(r"[A-Za-z0-9._+\-]+", info["kernel"]):
             plan["blocked"] = "The running kernel name could not be validated."
         if info["manager"] == "pacman":
@@ -171,6 +176,12 @@ def checks_for(info):
     module_ok = version_tuple(info["driver_version"]) >= MIN_OPENRAZER
     add("Driver for this kernel", "pass" if module_ok else "missing",
         info["driver_version"] if module_ok else "A current OpenRazer mouse module is needed for the running kernel.")
+    keyboard_ok = version_tuple(info.get("keyboard_driver_version", "")) >= MIN_OPENRAZER
+    add("Keyboard driver", "pass" if keyboard_ok else "missing",
+        info.get("keyboard_driver_version", "") if keyboard_ok else "The razerkbd module is required for BlackWidow RGB and macro keys.")
+    add("Keyboard macro playback", "pass" if info.get("uinput_access") else "info",
+        "Virtual keyboard input is available for Wayland and X11 macros." if info.get("uinput_access") else
+        "For V4 X macros, choose BlackWidow keyboard + macros and install support; RGB alone does not require virtual input.")
     loaded = info.get("loaded_driver_version", "")
     if loaded and version_tuple(loaded) != version_tuple(info["driver_version"]):
         add("Driver update", "restart", "An older driver is still loaded. Reboot to load the installed driver before testing controls.")
@@ -214,6 +225,7 @@ def probe():
     if not version_tuple(daemon):
         daemon = ""
     rc, module = command(["modinfo", "-k", kernel, "-F", "version", "razermouse"])
+    rc_keyboard, keyboard_module = command(["modinfo", "-k", kernel, "-F", "version", "razerkbd"])
     group = required_group(distro)
     user = desktop_user()
     try:
@@ -230,6 +242,8 @@ def probe():
             "kernel_package": read(Path("/usr/lib/modules") / kernel / "pkgbase"),
             "headers_match": matching_headers(kernel), "daemon_version": daemon,
             "driver_version": module if rc == 0 else "", "group": group,
+            "keyboard_driver_version": keyboard_module if rc_keyboard == 0 else "",
+            "uinput_access": os.access("/dev/uinput", os.W_OK),
             "loaded_driver_version": read("/sys/module/razermouse/version"),
             "group_configured": configured, "group_active": active,
             "service_running": (rc_bus == 0 and any(line.split()[0] == "org.razer" for line in bus.splitlines() if line.split())) or (rc_service == 0 and service == "active"),
@@ -263,15 +277,19 @@ def preflight(plan):
 
 
 def install_rule():
-    directory = Path("/etc/udev/rules.d")
+    install_text(Path("/etc/udev/rules.d") / RULE_NAME, HEADSET_RULE)
+
+
+def install_text(path, content):
+    directory = path.parent
     directory.mkdir(parents=True, exist_ok=True)
     filename = None
     try:
         with tempfile.NamedTemporaryFile(mode="w", dir=directory, delete=False) as output:
             filename = output.name
-            output.write(HEADSET_RULE)
+            output.write(content)
         os.chmod(filename, 0o644)
-        os.replace(filename, directory / RULE_NAME)
+        os.replace(filename, path)
     finally:
         if filename and os.path.exists(filename):
             os.unlink(filename)
@@ -310,8 +328,9 @@ def apply_plan(target, expected):
                 if not matching_headers(info["kernel"]):
                     raise SetupError("The installed headers do not match the running kernel. Reboot after your OS update, then check again. No substitute headers will be used.")
                 # Build only OpenRazer for this kernel, not unrelated DKMS modules.
-                rc, _ = command(["modinfo", "-k", info["kernel"], "razermouse"])
-                if rc:
+                missing_module = any(command(["modinfo", "-k", info["kernel"], module])[0]
+                                     for module in ("razermouse", "razeraccessory", "razerkbd"))
+                if missing_module:
                     _, daemon = command(["openrazer-daemon", "--version"])
                     ver = version_tuple(daemon)
                     version = ".".join(map(str, ver))
@@ -326,9 +345,16 @@ def apply_plan(target, expected):
                 run_change(["usermod", "-a", "-G", group, desktop_user().pw_name])
                 run_change(["modprobe", "razermouse"])
                 run_change(["modprobe", "razeraccessory"])
+                run_change(["modprobe", "razerkbd"])
             if plan["headset_rule"]:
                 install_rule()
+            if plan["uinput_rule"]:
+                install_text(Path("/etc/udev/rules.d") / UINPUT_RULE_NAME, UINPUT_RULE)
+                install_text(Path("/etc/modules-load.d/periphera-uinput.conf"), "uinput\n")
+                run_change(["modprobe", "uinput"])
             run_change(["udevadm", "control", "--reload-rules"])
+            if plan["uinput_rule"]:
+                run_change(["udevadm", "trigger", "--action=change", "--subsystem-match=misc", "--sysname-match=uinput"])
         finally:
             if unlock:
                 run_change(["steamos-readonly", "enable"])
@@ -344,7 +370,7 @@ def restart_service():
     rc, output = command(["systemctl", "--user", "restart", "openrazer-daemon.service"], timeout=30)
     if rc:
         raise SetupError("The device service could not start: " + output)
-    return {"ok": True, "message": "Device service restarted. Scan your mouse or mat to load its supported controls."}
+    return {"ok": True, "message": "Device service restarted. Scan your keyboard, mouse or mat. On the keyboard macro tab, restore saved macros to activate them again."}
 
 
 def main():

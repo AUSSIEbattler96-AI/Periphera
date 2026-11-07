@@ -1,4 +1,24 @@
-# Periphera 0.4.1 — Kraken branding
+# Periphera 0.4.2-test.2 — BlackWidow testing
+
+- BlackWidow V4 X (`1532:0293`): brightness, all available OpenRazer RGB
+  effects, individual key colours and M1–M6 keyboard macros.
+- BlackWidow V3 (`1532:024e`, full-size wired): brightness, all available
+  RGB effects and individual key colours.
+- Keyboard selection, live feature/matrix detection and hardware-free previews.
+- Macro step editor with shortcuts, waits, per-step timing, save/delete and
+  locally saved bindings that can be restored after a daemon restart.
+- Native Linux virtual keyboard playback for Wayland/X11, configured through
+  Hardware setup → BlackWidow keyboard + macros. These are host macros, not
+  onboard profiles; see `BLACKWIDOW.md` for limits and setup.
+- Separate **Periphera Testing** Flatpak, based on the existing guided setup
+  testing branch. The regular app and `main` are unchanged.
+
+Install with `flatpak install --user ./periphera-testing.flatpak` and launch
+**Periphera Testing**. Download assets include source, setup/keyboard guides
+and SHA256 checksums. This is an experimental prerelease; physical keyboard
+RGB placement, macro triggering and Wayland playback still need owner testing.
+
+## Previous release: 0.4.1 — Kraken branding
 
 - Replace the old bar-chart application icon with the green Venom kraken,
   including the ship and serpent, on a genuinely transparent background.

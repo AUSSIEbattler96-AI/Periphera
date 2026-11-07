@@ -4,7 +4,7 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Periphera</name>
-  <summary>Control Razer headset, mouse and RGB mouse-mat settings</summary>
+  <summary>Control Razer headset, mouse, keyboard and RGB mouse-mat settings</summary>
   <developer id="io.github.aussiebattler96-ai">
     <name>Periphera contributors</name>
   </developer>
@@ -31,6 +31,9 @@
   <content_rating type="oars-1.1"/>
   <supports><control>pointing</control><control>keyboard</control></supports>
   <releases>
+    <release version="0.4.2-test.2" date="2026-11-08" type="development">
+      <description><p>Add BlackWidow V4 X RGB and macros, BlackWidow V3 RGB, keyboard previews and guided virtual-input setup in the testing app.</p></description>
+    </release>
     <release version="0.4.1" date="2026-10-30" type="development">
       <description><p>Use the transparent Venom kraken artwork for the application icon, window icon and sidebar branding.</p></description>
     </release>
